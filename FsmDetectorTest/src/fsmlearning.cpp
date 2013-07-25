@@ -86,7 +86,7 @@ void test_graphOpt()
 
 }
 
-
+// Deprecated
 void processImages(istream *filenameListFile, bool isOn, LutColorFilter *filter, TransitionStat *stat)
 {
 	Mat src(480,640,CV_8UC3);
@@ -110,6 +110,33 @@ void processImages(istream *filenameListFile, bool isOn, LutColorFilter *filter,
 	}
 }
 
+void processImage(const char *imageFileName, const char *maskFileName, LutColorFilter *filter, TransitionStat *stat)
+{
+	Mat image = imread(imageFileName);
+	Mat mask = imread(maskFileName);
+	
+	if (mask.channels()==3)
+	{
+		cvtColor(mask, mask, CV_BGR2GRAY);
+	}
+
+	cout << "Processing file: " << imageFileName << " and " << maskFileName << ", size=" << image.cols << " x " << image.rows << endl;
+
+	Mat lut(image.rows,image.cols,CV_8UC1);
+//	Mat visLut(image.rows,image.cols,CV_8UC3);
+
+	filter->Filter(&image,&lut,NULL);
+//	filter->InverseLut(lut,visLut);
+
+/*	imshow("Teaching Image",image);
+	imshow("Teaching LUT Image",visLut);
+	imshow("Teaching Mask",mask);
+	waitKey(0);*/
+
+	stat->addImageWithMask(lut,mask);
+}
+
+
 Point lastMouseClickLocation;
 
 void mouse_callback(int eventtype, int x, int y, int flags, void *param)
@@ -122,7 +149,7 @@ void mouse_callback(int eventtype, int x, int y, int flags, void *param)
 }
 
 
-void test_mkStatFromImageList(const char *offImageFilenameList, const char *onImageFilenameList)
+void test_learnFromImagesAndMasks(const int firstFileIndex, const int lastFileIndex)
 {
 	int markovChainOrder = 100;
 
@@ -143,18 +170,13 @@ void test_mkStatFromImageList(const char *offImageFilenameList, const char *onIm
 
 	FsmLearner *fsmlearner = new FsmLearner(8,markovChainOrder,COLORCODE_NONE);
 
-	std::filebuf fileBuff;
-	if (fileBuff.open(onImageFilenameList,std::ios::in))
+	for(int fileIndex=firstFileIndex; fileIndex<=lastFileIndex; fileIndex++)
 	{
-		std::istream istrm(&fileBuff);
-		processImages(&istrm,true,lutColorFilter,fsmlearner);
-		fileBuff.close();
-	}
-	if (fileBuff.open(offImageFilenameList,std::ios::in))
-	{
-		std::istream istrm(&fileBuff);
-		processImages(&istrm,false,lutColorFilter,fsmlearner);
-		fileBuff.close();
+		char imageFileName[128];
+		char maskFileName[128];
+		sprintf(imageFileName,"image%d.jpg",fileIndex);
+		sprintf(maskFileName,"mask%d.jpg",fileIndex);
+		processImage(imageFileName,maskFileName,lutColorFilter,fsmlearner);
 	}
 
 	fsmlearner->counterTreeRoot->calculateSubtreeCounters(COUNTERIDX_OFF);

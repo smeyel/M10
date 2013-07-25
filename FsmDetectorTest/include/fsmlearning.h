@@ -3,5 +3,6 @@
 
 void test_graphOpt();
 void test_mkStatFromImageList(const char *offImageFilenameList, const char *onImageFilenameList);
+void test_learnFromImagesAndMasks(const int firstFileIndex, const int lastFileIndex);
 
 #endif
