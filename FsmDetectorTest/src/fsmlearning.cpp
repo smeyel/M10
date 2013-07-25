@@ -10,11 +10,23 @@
 #include "StdoutLogger.h"
 #include "FileLogger.h"
 
+#include "myconfigmanager.h"
+
 using namespace cv;
 using namespace LogConfigTime;
 using namespace smeyel;
 
 #include "FsmLearner.h"
+
+char *configfilename = "default.ini";
+MyConfigManager configmanager;
+
+vector<string> inputValueNames(7);
+
+Mat *src;
+Mat *lut;
+Mat *score;
+Mat *visLut;
 
 void test_graphOpt()
 {
@@ -86,30 +98,6 @@ void test_graphOpt()
 
 }
 
-// Deprecated
-void processImages(istream *filenameListFile, bool isOn, LutColorFilter *filter, TransitionStat *stat)
-{
-	Mat src(480,640,CV_8UC3);
-
-	char filename[256];
-	while (filenameListFile->getline(filename,256)) //Show the image captured in the window and repeat
-	{
-		VideoInput *input = VideoInputFactory::CreateVideoInput(VIDEOINPUTTYPE_GENERIC);
-		input->init(filename);
-		input->captureFrame(src);
-
-		cout << "Processing file: " << filename << ", size=" << src.cols << " x " << src.rows << endl;
-
-		Mat lut(src.rows,src.cols,CV_8UC1);
-		Mat visLut(src.rows,src.cols,CV_8UC3);
-
-		filter->Filter(&src,&lut,NULL);
-		filter->InverseLut(lut,visLut);
-
-		stat->addImage(lut,isOn);
-	}
-}
-
 void processImage(const char *imageFileName, const char *maskFileName, LutColorFilter *filter, TransitionStat *stat)
 {
 	Mat image = imread(imageFileName);
@@ -138,6 +126,8 @@ void processImage(const char *imageFileName, const char *maskFileName, LutColorF
 
 
 Point lastMouseClickLocation;
+unsigned int lastLutIdx;
+MyLutColorFilter *lutColorFilter;
 
 void mouse_callback(int eventtype, int x, int y, int flags, void *param)
 {
@@ -145,15 +135,39 @@ void mouse_callback(int eventtype, int x, int y, int flags, void *param)
 	{
 		lastMouseClickLocation = Point(x,y);
 		cout << "Click location saved: " << x << ";" << y << endl;
+
+		Vec3b intensity;
+		uchar bOrig, gOrig, rOrig;
+		uchar bNew,gNew,rNew;
+		uchar colorCode;
+
+		intensity = src->at<Vec3b>(lastMouseClickLocation.y, lastMouseClickLocation.x);
+		bOrig = intensity.val[0];
+		gOrig = intensity.val[1];
+		rOrig = intensity.val[2];
+		lutColorFilter->quantizeRgb(rOrig,gOrig,bOrig,rNew,gNew,bNew);
+		colorCode = lutColorFilter->rgb2lutValue(rOrig,gOrig,bOrig);
+		cout << "Pixel data:" << endl;
+		cout << "   real RGB: " << (int)rOrig << "," << (int)gOrig << "," << (int)bOrig << endl;
+		cout << "   quantizedRGB: " << (int)rNew << "," << (int)gNew << "," << (int)bNew << endl;
+		cout << "   LUT value: " << (int)colorCode << ", meaning:" << inputValueNames[colorCode] << endl;
+		lastLutIdx = lutColorFilter->rgb2idx(rOrig,gOrig,bOrig);
 	}
 }
 
 
-void test_learnFromImagesAndMasks(const int firstFileIndex, const int lastFileIndex)
+void test_learnFromImagesAndMasks(const int firstFileIndex, const int lastFileIndex, const char *configFileName = NULL)
 {
+	if (configFileName != NULL)
+	{
+		// INI file is given as command line parameter
+		strcpy(configfilename,configFileName);
+	}
+	// Setup config management
+	configmanager.init(configfilename);
+
 	int markovChainOrder = 100;
 
-	vector<string> inputValueNames(7);
 	inputValueNames[COLORCODE_BLK]=string("BLK");
 	inputValueNames[COLORCODE_WHT]=string("WHT");
 	inputValueNames[COLORCODE_RED]=string("RED");
@@ -166,7 +180,12 @@ void test_learnFromImagesAndMasks(const int firstFileIndex, const int lastFileIn
 	logger->SetLogLevel(Logger::LOGLEVEL_WARNING);
 	//logger->SetLogLevel(Logger::LOGLEVEL_VERBOSE);
 
-	MyLutColorFilter *lutColorFilter = new MyLutColorFilter();
+	lutColorFilter = new MyLutColorFilter();
+	if (configmanager.loadLutAtStartup)
+	{
+		cout << "Loading LUT from " << configmanager.lutFile << endl;
+		lutColorFilter->load(configmanager.lutFile.c_str());
+	}
 
 	FsmLearner *fsmlearner = new FsmLearner(8,markovChainOrder,COLORCODE_NONE);
 
@@ -219,10 +238,10 @@ void test_learnFromImagesAndMasks(const int firstFileIndex, const int lastFileIn
 	cvSetMouseCallback("LUT", mouse_callback);
 	cvSetMouseCallback("Score", mouse_callback);
 
-	Mat src(480,640,CV_8UC3);
-	Mat lut(480,640,CV_8UC1);
-	Mat score(480,640,CV_8UC1);
-	Mat visLut(480,640,CV_8UC3);
+	src = new Mat(480,640,CV_8UC3);
+	lut = new Mat(480,640,CV_8UC1);
+	score = new Mat(480,640,CV_8UC1);
+	visLut = new Mat(480,640,CV_8UC3);
 
 	bool running=true;
 	bool capture=true;
@@ -230,19 +249,18 @@ void test_learnFromImagesAndMasks(const int firstFileIndex, const int lastFileIn
 	{
 		if (capture)
 		{
-			camProxy0->CaptureImage(0,&src);
-		
-			lutColorFilter->Filter(&src,&lut,NULL);
-
-			fsmlearner->getScoreMaskForImage(lut,score);
+			camProxy0->CaptureImage(0,src);
 		}
-		lutColorFilter->InverseLut(lut,visLut);	// May be changed at mouse clicks
+		lutColorFilter->Filter(src,lut,NULL);	// LUT may be changed...
+		fsmlearner->getScoreMaskForImage(*lut,*score);
+		lutColorFilter->InverseLut(*lut,*visLut);	// May be changed at mouse clicks
 
-		imshow("SRC",src);
-		imshow("LUT",visLut);
-		imshow("Score",score);
+		imshow("SRC",*src);
+		imshow("LUT",*visLut);
+		imshow("Score",*score);
 
 		char ch = waitKey(25);
+		unsigned char newLutValue;
 		switch(ch)
 		{
 		case 27:
@@ -255,9 +273,27 @@ void test_learnFromImagesAndMasks(const int firstFileIndex, const int lastFileIn
 			capture=true;
 			break;
 		case 'v':	// verbose
-			fsmlearner->verboseScoreForImageLocation(lut,lastMouseClickLocation);
+			fsmlearner->verboseScoreForImageLocation(*lut,lastMouseClickLocation);
+			break;
+		case 'c':	// Lut change	
+			cout << "LUT modification for idx " << lastLutIdx << endl;
+			for(int i=0; i<inputValueNames.size(); i++)
+			{
+				cout << "   code " << i << ": " << inputValueNames[i] << endl;
+			}
+			cout << "Choose by pressing the corresponding number." << endl;
+			newLutValue = waitKey(0) - '0';
+			lutColorFilter->setLutItemByIdx(lastLutIdx,newLutValue);
+			cout << "LUT[" << lastLutIdx << "] = " << (int)newLutValue << endl;
+			break;
+		case 'w':	// Write LUT to file
+			lutColorFilter->save(configmanager.lutFile.c_str());
+			cout << "LUT saved to " << configmanager.lutFile << endl;
+			break;
+		case 'l':	// Load LUT from file
+			lutColorFilter->load(configmanager.lutFile.c_str());
+			cout << "LUT loaded from " << configmanager.lutFile << endl;
 			break;
 		}
 	}
 }
-

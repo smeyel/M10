@@ -23,5 +23,5 @@ using namespace LogConfigTime;
 
 int main(int argc, char *argv[], char *window_name)
 {
-	test_learnFromImagesAndMasks(0,14);
+	test_learnFromImagesAndMasks(0,14,NULL);
 }

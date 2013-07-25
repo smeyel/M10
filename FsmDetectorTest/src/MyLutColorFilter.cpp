@@ -14,9 +14,10 @@ void MyLutColorFilter::init()
 		RgbLut[i]=COLORCODE_NONE;
 
 		// Get RGB, scale back to 0-255 to simplify the conditions
-		r = (i >> 6) << 5;
+		idx2rgb(i,r,g,b);
+/*		r = (i >> 6) << 5;
 		g = ((i >> 3) & 0x07) << 5;
-		b = (i & 0x07) << 5;
+		b = (i & 0x07) << 5;*/
 
 		if (r == g &&  g == b && r <= 64)
 		{

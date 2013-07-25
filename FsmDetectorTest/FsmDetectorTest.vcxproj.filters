@@ -38,5 +38,8 @@
     <ClInclude Include="include\MyLutColorFilter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\myconfigmanager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
