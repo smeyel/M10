@@ -198,18 +198,15 @@ void test_learnFromImagesAndMasks(const int firstFileIndex, const int lastFileIn
 		processImage(imageFileName,maskFileName,lutColorFilter,fsmlearner);
 	}
 
-	fsmlearner->counterTreeRoot->calculateSubtreeCounters(COUNTERIDX_OFF);
-	fsmlearner->counterTreeRoot->calculateSubtreeCounters(COUNTERIDX_ON);
-
 	// Fix dataset imbalances in the counter values
-	float onSum = fsmlearner->counterTreeRoot->getCounter(COUNTERIDX_ON);
-	float offSum = fsmlearner->counterTreeRoot->getCounter(COUNTERIDX_OFF);
+	float onSum = fsmlearner->counterTreeRoot->calculateSubtreeCounters(COUNTERIDX_ON);
+	float offSum = fsmlearner->counterTreeRoot->calculateSubtreeCounters(COUNTERIDX_OFF);
 	float multiplier = offSum / onSum;
 	fsmlearner->counterTreeRoot->multiplySubtreeCounters(COUNTERIDX_ON, multiplier);
 
 	// Optimize tree
 	// Set precisions
-	fsmlearner->setPrecisionStatus(fsmlearner->counterTreeRoot,0.7F);
+	fsmlearner->setPrecisionStatus(fsmlearner->counterTreeRoot,0.9F);
 
 	//fsmlearner->counterTreeRoot->showCompactRecursive(0,1,&inputValueNames);
 
