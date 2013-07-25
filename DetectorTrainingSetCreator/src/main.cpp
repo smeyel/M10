@@ -1,4 +1,5 @@
 #include <iostream>	// for standard I/O
+#include <fstream>
 #include <string>   // for strings
 
 #include <opencv2/core/core.hpp>        // Basic OpenCV structures (cv::Mat)
@@ -10,14 +11,26 @@
 using namespace std;
 using namespace cv;
 
-void help()
+Rect maskRect;
+Point lastMouseClickLocation;
+
+void mouse_callback(int eventtype, int x, int y, int flags, void *param)
 {
-	cout
-		<< "\n--------------------------------------------------------------------------" << endl
-		<< "This program captures video from local camera to file."
-		<< "--------------------------------------------------------------------------"   << endl
-		<< endl;
+	if (eventtype == CV_EVENT_LBUTTONDOWN)
+	{
+		lastMouseClickLocation = Point(x,y);
+		cout << "Click location saved: " << x << ";" << y << endl;
+	}
 }
+
+void updateMask(Mat &srcOriginal, Mat &srcAnnotated, Mat &mask)
+{
+	srcOriginal.copyTo(srcAnnotated);
+	mask.setTo(Scalar(0));
+	rectangle(srcAnnotated,maskRect,Scalar(0,255,0));
+	rectangle(mask,maskRect,Scalar(255),CV_FILLED);
+}
+
 
 // Meant to record video from multiple cameras. Later, should be able to use CameraProxy and save images with timestamp for proper re-playing.
 // Will support even multiple local and/or multiple remote cameras.
@@ -25,69 +38,61 @@ void help()
 // Record to multiple files by first capturing into memory and then saving into AVI at once. (Pre-allocate many buffer Mat-s)
 int main(int argc, char *argv[], char *window_name)
 {
-	CameraProxy *camProxy0 = new CameraLocalProxy(VIDEOINPUTTYPE_PS3EYE,0);
-	CameraProxy *camProxy1 = new CameraLocalProxy(VIDEOINPUTTYPE_PS3EYE,1);
+	CameraProxy *camProxy = new CameraLocalProxy(VIDEOINPUTTYPE_GENERIC,0);
 
-/*	cout << "Waiting 3s..." << endl;
-#ifdef WIN32
-	Sleep(3000);
-#else
-#error TODO: Sleep not implemented for non-Win32.
-#endif*/
-
-	/*CameraRemoteProxy *camProxy0 = new CameraRemoteProxy();
-	camProxy0->Connect("127.0.0.1",6000);*/
-	/*CameraRemoteProxy *camProxy1 = new CameraRemoteProxy();
-	camProxy1->Connect("127.0.0.1",6001);*/
-
-	/*Size S = Size((int) inputVideo.get(CV_CAP_PROP_FRAME_WIDTH),    //Acquire input size
-				  (int) inputVideo.get(CV_CAP_PROP_FRAME_HEIGHT));*/
 	Size S = Size(640,480);
 
-	const string target = "test.avi";//argv[2];            // the target file name
-	VideoWriter outputVideo;                                        // Open the output
-	outputVideo.open(string(target), CV_FOURCC('M','J','P','G'), 25.0 ,S, true);
+	namedWindow("Image", CV_WINDOW_AUTOSIZE);
+	namedWindow("Mask", CV_WINDOW_AUTOSIZE);
+	cvSetMouseCallback("Image", mouse_callback);
+	cvSetMouseCallback("Mask", mouse_callback);
 
-	if (!outputVideo.isOpened())
+	Mat srcOriginal(480,640,CV_8UC4);
+	Mat srcAnnotated(480,640,CV_8UC4);
+	Mat mask(480,640,CV_8UC1);
+	srcOriginal.setTo(Scalar(100,100,100));
+	srcAnnotated.setTo(Scalar(100,100,100));
+	mask.setTo(Scalar(0));
+
+	int fileCounter=0;
+	bool running = true;
+	while(running)
 	{
-		cout  << "Could not open the output video for write: " << target << endl;
-		return -1;
-	}
-
-//	union { int v; char c[5];} uEx ;
-
-/*	cout << "Input frame resolution: Width=" << S.width << "  Height=" << S.height
-		<< " of nr#: " << inputVideo.get(CV_CAP_PROP_FRAME_COUNT) << endl;*/
-
-	namedWindow("Video 0", CV_WINDOW_AUTOSIZE);
-	//namedWindow("Video 1", CV_WINDOW_AUTOSIZE);
-
-	Mat src0(480,640,CV_8UC4);
-	Mat src1(480,640,CV_8UC4);
-	int framecounter = 0;	// 0-based frame counter
-	while(true) //Show the image captured in the window and repeat
-	{
-		camProxy0->CaptureImage(0,&src0);
-		camProxy1->CaptureImage(0,&src1);
-
-		imshow("Video 0",src0);
-		imshow("Video 1",src1);
-
-		cout << "Frame " << framecounter << endl;
-
-		//outputVideo << src;
-
-		framecounter++;
+		imshow("Image",srcAnnotated);
+		imshow("Mask",mask);
 
 		char ch = waitKey(25);
-		if (ch==27)
+		switch(ch)
 		{
+		case 27:
+			running=false;
+			break;
+		case 'c':	// Capture
+			camProxy->CaptureImage(0,&srcOriginal);
+			srcOriginal.copyTo(srcAnnotated);
+			mask.setTo(Scalar(0));
+			cout << "Image captured, mask reset." << endl;
+			break;
+		case '1':	// upper left corner
+			maskRect.x = lastMouseClickLocation.x;
+			maskRect.y = lastMouseClickLocation.y;
+			updateMask(srcOriginal,srcAnnotated,mask);
+			break;
+		case '2':	// lower right corner
+			maskRect.width = lastMouseClickLocation.x - maskRect.x;
+			maskRect.height = lastMouseClickLocation.y - maskRect.y;
+			updateMask(srcOriginal,srcAnnotated,mask);
+			break;
+		case 's':	// save image and mask
+			char filename[128];
+			sprintf(filename,"image%d.jpg",fileCounter);
+			imwrite(filename,srcOriginal);
+			sprintf(filename,"mask%d.jpg",fileCounter);
+			imwrite(filename,mask);
+			fileCounter++;
+			cout << "Image and mask saved." << endl;
 			break;
 		}
 	}
-
-	//camProxy1->Disconnect();
-
-	cout << endl << "Capture complete." << endl;
 	return 0;
 }
