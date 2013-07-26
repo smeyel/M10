@@ -14,6 +14,7 @@ class MyConfigManager
 
 		loadLutAtStartup = reader->getBoolValue("main","loadLutAtStartup");
 		lutFile = reader->getStringValue("main","lutFile");
+		runLengthTransformFile = reader->getStringValue("main","runLengthTransformFile");
 		return true;
 	}
 
@@ -26,6 +27,7 @@ public:
 	// --- Settings
 	bool loadLutAtStartup;
 	std::string lutFile;
+	std::string runLengthTransformFile;
 };
 
 #endif

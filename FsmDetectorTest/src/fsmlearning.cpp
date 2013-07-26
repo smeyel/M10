@@ -187,7 +187,7 @@ void test_learnFromImagesAndMasks(const int firstFileIndex, const int lastFileIn
 		lutColorFilter->load(configmanager.lutFile.c_str());
 	}
 
-	FsmLearner *fsmlearner = new FsmLearner(8,markovChainOrder,COLORCODE_NONE);
+	FsmLearner *fsmlearner = new FsmLearner(8,markovChainOrder,COLORCODE_NONE, configmanager.runLengthTransformFile.c_str());
 
 	for(int fileIndex=firstFileIndex; fileIndex<=lastFileIndex; fileIndex++)
 	{
@@ -199,8 +199,8 @@ void test_learnFromImagesAndMasks(const int firstFileIndex, const int lastFileIn
 	}
 
 	// Fix dataset imbalances in the counter values
-	float onSum = fsmlearner->counterTreeRoot->calculateSubtreeCounters(COUNTERIDX_ON);
-	float offSum = fsmlearner->counterTreeRoot->calculateSubtreeCounters(COUNTERIDX_OFF);
+	float onSum = (float)fsmlearner->counterTreeRoot->calculateSubtreeCounters(COUNTERIDX_ON);
+	float offSum = (float)fsmlearner->counterTreeRoot->calculateSubtreeCounters(COUNTERIDX_OFF);
 	float multiplier = offSum / onSum;
 	fsmlearner->counterTreeRoot->multiplySubtreeCounters(COUNTERIDX_ON, multiplier);
 
@@ -274,7 +274,7 @@ void test_learnFromImagesAndMasks(const int firstFileIndex, const int lastFileIn
 			break;
 		case 'c':	// Lut change	
 			cout << "LUT modification for idx " << lastLutIdx << endl;
-			for(int i=0; i<inputValueNames.size(); i++)
+			for(unsigned int i=0; i<inputValueNames.size(); i++)
 			{
 				cout << "   code " << i << ": " << inputValueNames[i] << endl;
 			}
