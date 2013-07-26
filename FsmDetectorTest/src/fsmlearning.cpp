@@ -12,11 +12,15 @@
 
 #include "myconfigmanager.h"
 
+#include "ImageTransitionStat.h"
+#include "PixelPrecisionCalculator.h"
+#include "PixelScoreImageTransform.h"
+
 using namespace cv;
 using namespace LogConfigTime;
 using namespace smeyel;
 
-#include "FsmLearner.h"
+//#include "FsmLearner.h"
 
 char *configfilename = "default.ini";
 MyConfigManager configmanager;
@@ -28,77 +32,7 @@ Mat *lut;
 Mat *score;
 Mat *visLut;
 
-void test_graphOpt()
-{
-	Logger *logger = new StdoutLogger();
-	logger->SetLogLevel(Logger::LOGLEVEL_WARNING);
-	MyLutColorFilter *lutColorFilter = new MyLutColorFilter();
-	FsmLearner *fsmlearner = new FsmLearner(8,3,COLORCODE_NONE);
-
-	vector<string> inputValueNames(7);
-	inputValueNames[COLORCODE_BLK]=string("BLK");
-	inputValueNames[COLORCODE_WHT]=string("WHT");
-	inputValueNames[COLORCODE_RED]=string("RED");
-	inputValueNames[COLORCODE_GRN]=string("GRN");
-	inputValueNames[COLORCODE_BLU]=string("BLU");
-	inputValueNames[COLORCODE_NONE]=string("NON");
-
-	Mat src(50,50,CV_8UC3);
-	Mat lut(50,50,CV_8UC1);
-	Mat lutVis(50,50,CV_8UC3);
-	src.setTo(Scalar(0,0,0));
-	rectangle(src,Point2d(25,0),Point2d(30,25),Scalar(255,0,0));
-	rectangle(src,Point2d(25,26),Point2d(30,49),Scalar(0,255,0));
-	lutColorFilter->Filter(&src,&lut,NULL);
-	lutColorFilter->InverseLut(lut,lutVis);
-	imshow("TestImage",src);
-	imshow("LUT",lutVis);
-	//waitKey(0);
-	fsmlearner->addImage(lut, true);
-
-	//cout << "------------- ON train -------------" << endl;
-	//stat->counterTreeRoot->showCompactRecursive(0,1,&inputValueNames);
-
-	src.setTo(Scalar(0,0,0));
-	rectangle(src,Point2d(25,0),Point2d(30,49),Scalar(0,0,255));
-	lutColorFilter->Filter(&src,&lut,NULL);
-	lutColorFilter->InverseLut(lut,lutVis);
-	imshow("TestImage",src);
-	imshow("LUT",lutVis);
-	//waitKey(0);
-	fsmlearner->addImage(lut, false);
-
-	//cout << "------------- OFF train -------------" << endl;
-	//stat->counterTreeRoot->showCompactRecursive(0,1,&inputValueNames);
-
-	// calculateSubtreeCounters
-	fsmlearner->counterTreeRoot->calculateSubtreeCounters(COUNTERIDX_ON);
-	fsmlearner->counterTreeRoot->calculateSubtreeCounters(COUNTERIDX_OFF);
-
-	// Set precisions
-	fsmlearner->setPrecisionStatus(fsmlearner->counterTreeRoot,0.7F);
-
-	fsmlearner->counterTreeRoot->showCompactRecursive(0,1,&inputValueNames);
-
-	// cut
-	cout << "------------- cut -------------" << endl;
-	fsmlearner->counterTreeRoot->cut(0);
-
-	fsmlearner->counterTreeRoot->showCompactRecursive(0,1,&inputValueNames);
-
-	cout << "------------- merge -------------" << endl;
-	fsmlearner->mergeNodesForPrecision(&inputValueNames);
-
-	cout << "------------- combining nodes... -------------" << endl;
-	fsmlearner->counterTreeRoot->showCompactRecursive(0,1,&inputValueNames);
-
-
-
-	cout << "done" << endl;
-
-}
-
-void processImage(const char *imageFileName, const char *maskFileName, LutColorFilter *filter, TransitionStat *stat)
+void processImage(const char *imageFileName, const char *maskFileName, LutColorFilter *filter, ImageTransitionStat *stat)
 {
 	Mat image = imread(imageFileName);
 	Mat mask = imread(maskFileName);
@@ -187,7 +121,7 @@ void test_learnFromImagesAndMasks(const int firstFileIndex, const int lastFileIn
 		lutColorFilter->load(configmanager.lutFile.c_str());
 	}
 
-	FsmLearner *fsmlearner = new FsmLearner(8,markovChainOrder,COLORCODE_NONE, configmanager.runLengthTransformFile.c_str());
+	ImageTransitionStat *stat = new ImageTransitionStat(8,markovChainOrder, configmanager.runLengthTransformFile.c_str());
 
 	for(int fileIndex=firstFileIndex; fileIndex<=lastFileIndex; fileIndex++)
 	{
@@ -195,33 +129,19 @@ void test_learnFromImagesAndMasks(const int firstFileIndex, const int lastFileIn
 		char maskFileName[128];
 		sprintf(imageFileName,"image%d.jpg",fileIndex);
 		sprintf(maskFileName,"mask%d.jpg",fileIndex);
-		processImage(imageFileName,maskFileName,lutColorFilter,fsmlearner);
+		processImage(imageFileName,maskFileName,lutColorFilter,stat);
 	}
 
 	// Fix dataset imbalances in the counter values
-	float onSum = (float)fsmlearner->counterTreeRoot->calculateSubtreeCounters(COUNTERIDX_ON);
-	float offSum = (float)fsmlearner->counterTreeRoot->calculateSubtreeCounters(COUNTERIDX_OFF);
-	float multiplier = offSum / onSum;
-	fsmlearner->counterTreeRoot->multiplySubtreeCounters(COUNTERIDX_ON, multiplier);
+	stat->balanceCounter(COUNTERIDX_ON, COUNTERIDX_OFF);
 
-	// Optimize tree
 	// Set precisions
-	fsmlearner->setPrecisionStatus(fsmlearner->counterTreeRoot,0.9F);
+	PixelPrecisionCalculator precisionCalculator(COUNTERIDX_ON,COUNTERIDX_OFF);
+	precisionCalculator.setPrecisionStatus(stat->counterTreeRoot,0.7F);	// TODO 0.9F !!!
 
-	//fsmlearner->counterTreeRoot->showCompactRecursive(0,1,&inputValueNames);
+	cout << "Current created SequenceCounterTreeNode number: " << SequenceCounterTreeNode::getSumCreatedNodeNumber() << endl;
 
-	// cut
-	cout << "------------- cut -------------" << endl;
-	// Warning: a node look-up nem kezeli rendesen, ha CUT-olva van a fa...
-	//fsmlearner->counterTreeRoot->cut(0);
-	//fsmlearner->counterTreeRoot->showCompactRecursive(0,1,&inputValueNames);
-
-	cout << "------------- merge -------------" << endl;
-	//fsmlearner->mergeNodesForPrecision(&inputValueNames);
-	fsmlearner->setPrecisionStatus(fsmlearner->counterTreeRoot,0.7F);	// re-set precision status and AUX!
-	//fsmlearner->counterTreeRoot->showCompactRecursive(0,1,&inputValueNames);
-
-	SequenceCounterTreeNode::showNodeNumber();
+	PixelScoreImageTransform scoreTransform(stat);
 
 	// -------------- Now start camera and apply statistics (auxScore mask) to the frames
 	CameraLocalProxy *camProxy0 = new CameraLocalProxy(VIDEOINPUTTYPE_PS3EYE,0);
@@ -249,7 +169,7 @@ void test_learnFromImagesAndMasks(const int firstFileIndex, const int lastFileIn
 			camProxy0->CaptureImage(0,src);
 		}
 		lutColorFilter->Filter(src,lut,NULL);	// LUT may be changed...
-		fsmlearner->getScoreMaskForImage(*lut,*score);
+		scoreTransform.TransformImage(*lut,*score);
 		lutColorFilter->InverseLut(*lut,*visLut);	// May be changed at mouse clicks
 
 		imshow("SRC",*src);
@@ -270,7 +190,7 @@ void test_learnFromImagesAndMasks(const int firstFileIndex, const int lastFileIn
 			capture=true;
 			break;
 		case 'v':	// verbose
-			fsmlearner->verboseScoreForImageLocation(*lut,lastMouseClickLocation);
+			stat->verboseScoreForImageLocation(*lut,lastMouseClickLocation);
 			break;
 		case 'c':	// Lut change	
 			cout << "LUT modification for idx " << lastLutIdx << endl;
