@@ -133,7 +133,7 @@ void test_learnFromImagesAndMasks(const int firstFileIndex, const int lastFileIn
 	}
 
 	// Fix dataset imbalances in the counter values
-	stat->balanceCounter(COUNTERIDX_ON, COUNTERIDX_OFF);
+	stat->balanceCounter(COUNTERIDX_ON, COUNTERIDX_OFF, false);
 
 	// Set precisions
 	PixelPrecisionCalculator precisionCalculator(COUNTERIDX_ON,COUNTERIDX_OFF);
