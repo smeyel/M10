@@ -127,20 +127,34 @@ public:
 		}
 	}
 
-/*	// Modifies corners!
-	void compensatePerspectiveTransform(Mat &img)
+	// Modifies corners!
+	void compensatePerspectiveTransform(Mat &src, Mat &dst)
 	{
+		Point2f newCorners[4];
+		newCorners[0] = Point2f(50,50);
+		newCorners[1] = Point2f(640-50,50);
+		newCorners[2] = Point2f(50,480-50);
+		newCorners[3] = Point2f(640-50,480-50);
 
-	}*/
+		Mat transform = getPerspectiveTransform(this->corners, newCorners);
+
+		warpPerspective(src, dst, transform, Size(640,480));
+
+		for(int i=0; i<4; i++)
+		{
+			this->corners[i] = newCorners[i];
+		}
+	}
 };
 
 class CalibrationArea : public RectangularArea
 {
-public:
-	// Unit vectors from upper left corner
+	// Unit vectors from upper left corner.
+	// Only calculated upon need, by getSubArea()
 	Point2f unitHorizontal;
 	Point2f unitVertical;
 
+	// used by findInImage
 	void setFromCircleVector(vector<Vec3f> circles)
 	{
 		Vec3f marks[4];
@@ -158,16 +172,50 @@ public:
 		corners[1] = Point2f( marks[1][0]-marks[1][2],marks[1][1]+marks[1][2] );
 		corners[2] = Point2f( marks[2][0]+marks[2][2],marks[2][1]-marks[2][2] );
 		corners[3] = Point2f( marks[3][0]-marks[3][2],marks[3][1]-marks[3][2] );
+	}
 
+public:
+	bool findInImage(Mat &src)
+	{
+		OPENCV_ASSERT(src.cols==640 && src.rows==480,"CalibrateLut", "Source image is not 640x480...");
+		OPENCV_ASSERT(src.type() == CV_8UC3,"CalibrateLut", "Source image is not CV_8UC3...");
+		// Find circles
+		Mat grayImage;
+		cvtColor(src, grayImage, CV_BGR2GRAY);
+		GaussianBlur( grayImage, grayImage, Size(9, 9), 2, 2 );
+		vector<Vec3f> circles;
+		HoughCircles(grayImage, circles, CV_HOUGH_GRADIENT,
+					 1,	// full recolution accumulator
+					 grayImage.rows/4,	// minimal distance between the centers of detected circles
+					 100,25);
+		for( size_t i = 0; i < circles.size(); i++ )
+		{
+			 Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
+			 int radius = cvRound(circles[i][2]);
+			 // draw the circle center
+			 circle( src, center, 3, Scalar(0,255,0), -1, 8, 0 );
+			 // draw the circle outline
+			 circle( src, center, radius, Scalar(0,0,255), 3, 8, 0 );
+		}
+
+		if (circles.size() != 4)
+		{
+			cout << "Not 4 circles were found... (" << circles.size() << ")" << endl;
+			return false;
+		}
+
+		setFromCircleVector(circles);
+		return true;
+	}
+
+	void getSubArea(int row, int col, RectangularArea &subArea)
+	{
 		unitHorizontal.x = (corners[1].x - corners[0].x) / 21.0F;
 		unitHorizontal.y = (corners[1].y - corners[0].y) / 21.0F;
 
 		unitVertical.x = (corners[2].x - corners[0].x) / 18.0F;
 		unitVertical.y = (corners[2].y - corners[0].y) / 18.0F;
-	}
 
-	void getSubArea(int row, int col, RectangularArea &subArea)
-	{
 		// Get upper left corner
 		Point2f UL = this->corners[0] + this->unitHorizontal + this->unitVertical
 			+ col*7*this->unitHorizontal + row*10*this->unitVertical;
@@ -181,6 +229,7 @@ public:
 		subArea.corners[3] = LR;
 	}
 
+	// helper to wrap getSubArea to result polyline instead of RectangularArea.
 	void getPolylineForSubArea(int row, int col, Point *targetOf4Points)
 	{
 		RectangularArea subarea;
@@ -196,50 +245,28 @@ public:
 
 void CalibrateLut(Mat &src)
 {
-	OPENCV_ASSERT(src.cols==640 && src.rows==480,"CalibrateLut", "Source image is not 640x480...");
-	OPENCV_ASSERT(src.type() == CV_8UC3,"CalibrateLut", "Source image is not CV_8UC3...");
-	// Find circles
-	Mat grayImage;
-	cvtColor(src, grayImage, CV_BGR2GRAY);
-    GaussianBlur( grayImage, grayImage, Size(9, 9), 2, 2 );
-    vector<Vec3f> circles;
-    HoughCircles(grayImage, circles, CV_HOUGH_GRADIENT,
-                 1,	// full recolution accumulator
-				 grayImage.rows/4,	// minimal distance between the centers of detected circles
-				 100,25);
-    for( size_t i = 0; i < circles.size(); i++ )
-    {
-         Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
-         int radius = cvRound(circles[i][2]);
-         // draw the circle center
-         circle( src, center, 3, Scalar(0,255,0), -1, 8, 0 );
-         // draw the circle outline
-         circle( src, center, radius, Scalar(0,0,255), 3, 8, 0 );
-    }
-
-//	namedWindow( "Circles", 1 );
-//    imshow( "Circles", src );
-	if (circles.size() != 4)
-	{
-		cout << "Not 4 circles were found... (" << circles.size() << ")" << endl;
-		return;
-	}
-
 	CalibrationArea area;
-	area.setFromCircleVector(circles);
+	if (!area.findInImage(src))
+	{
+		return;	// Not found...
+	}
 	area.draw(src,Scalar(100,255,100));
+
+	Mat normalizedImage;
+	area.compensatePerspectiveTransform(src,normalizedImage);
+
 	RectangularArea subarea;
 	for(int row=0; row<2; row++)
 	{
 		for(int col=0; col<3; col++)
 		{
 			area.getSubArea(row,col,subarea);
-			subarea.draw(src,Scalar(255,100,100));
+			subarea.draw(normalizedImage,Scalar(255,100,100));
 		}
 	}
 
-
-
+	namedWindow( "Normalized", 1 );
+    imshow( "Normalized", normalizedImage );
 }
 
 
