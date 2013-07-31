@@ -84,7 +84,7 @@ void mouse_callback(int eventtype, int x, int y, int flags, void *param)
 		cout << "Pixel data:" << endl;
 		cout << "   real RGB: " << (int)rOrig << "," << (int)gOrig << "," << (int)bOrig << endl;
 		cout << "   quantizedRGB: " << (int)rNew << "," << (int)gNew << "," << (int)bNew << endl;
-		cout << "   LUT value: " << (int)colorCode << ", meaning:" << inputValueNames[colorCode] << endl;
+		cout << "   LUT value: (" << (int)colorCode << ") " << inputValueNames[colorCode] << endl;
 		lastLutIdx = lutColorFilter->rgb2idx(rOrig,gOrig,bOrig);
 	}
 }
@@ -201,6 +201,7 @@ class CalibrationArea : public Tetragon
 				Tetragon subarea;
 				getSubArea(row,col,subarea);
 				unsigned char colorCodes[] = { COLORCODE_BLK, COLORCODE_WHT, maskSkipValue, COLORCODE_RED, COLORCODE_GRN, COLORCODE_BLU };
+//				unsigned char colorCodes[] = { COLORCODE_BLK, COLORCODE_WHT, maskSkipValue, COLORCODE_RED, COLORCODE_GRN, maskSkipValue };
 				subarea.addCodedMask(dst,colorCodes[row*3+col]);
 			}
 		}
