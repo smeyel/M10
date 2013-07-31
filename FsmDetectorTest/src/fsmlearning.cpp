@@ -105,7 +105,7 @@ int findMinIdx(vector<Vec3f> marks, float coeffX, float coeffY, float offset)
 	return minIdx;
 }
 
-class RectangularArea
+class Tetragon
 {
 public:
 	Point2f corners[4];	// Upper left, upper right, lower left, lower right
@@ -120,10 +120,11 @@ public:
 
 	void getPolyline(Point *targetOf4Points)
 	{
+		int idxReordering[] = { 0, 1, 3, 2 };	// Need circular order!
 		for(int i=0; i<4; i++)
 		{
-			targetOf4Points[i].x = cvRound(this->corners[i].x);
-			targetOf4Points[i].y = cvRound(this->corners[i].y);
+			targetOf4Points[i].x = cvRound(this->corners[idxReordering[i]].x);
+			targetOf4Points[i].y = cvRound(this->corners[idxReordering[i]].y);
 		}
 	}
 
@@ -145,9 +146,23 @@ public:
 			this->corners[i] = newCorners[i];
 		}
 	}
+
+	void addCodedMask(Mat &dst, unsigned char colorCode)
+	{
+		OPENCV_ASSERT(dst.type() == CV_8UC1,"createMask", "Destination image is not CV_8UC1...");
+
+		Point points[4];
+		this->getPolyline(points);
+
+		int n = 4;
+		const Point *p = points;
+		const Point **pp = &p;
+		
+		fillPoly(dst,pp,&n, 1, Scalar(colorCode));
+	}
 };
 
-class CalibrationArea : public RectangularArea
+class CalibrationArea : public Tetragon
 {
 	// Unit vectors from upper left corner.
 	// Only calculated upon need, by getSubArea()
@@ -208,7 +223,7 @@ public:
 		return true;
 	}
 
-	void getSubArea(int row, int col, RectangularArea &subArea)
+	void getSubArea(int row, int col, Tetragon &subArea)
 	{
 		unitHorizontal.x = (corners[1].x - corners[0].x) / 21.0F;
 		unitHorizontal.y = (corners[1].y - corners[0].y) / 21.0F;
@@ -232,13 +247,37 @@ public:
 	// helper to wrap getSubArea to result polyline instead of RectangularArea.
 	void getPolylineForSubArea(int row, int col, Point *targetOf4Points)
 	{
-		RectangularArea subarea;
+		Tetragon subarea;
 		getSubArea(row,col,subarea);
 		for(int i=0; i<4; i++)
 		{
 			targetOf4Points[i].x = cvRound(subarea.corners[i].x);
 			targetOf4Points[i].y = cvRound(subarea.corners[i].y);
 		}
+	}
+
+	void updateLUT(LutColorFilter lut, Mat &src)
+	{
+		// Go along subareas and create colorcode masks. Then call LUT update on src and the mask.
+		Mat colorCodeMask(src.rows, src.cols, CV_8UC1);
+		const unsigned char maskSkipValue = 0;
+		colorCodeMask.setTo(maskSkipValue);
+		for(int row=0; row<2; row++)
+		{
+			for(int col=0; col<3; col++)
+			{
+				Tetragon subarea;
+				getSubArea(row,col,subarea);
+				unsigned char colorCodes[] = { COLORCODE_BLK, COLORCODE_WHT, COLORCODE_RED, COLORCODE_GRN, COLORCODE_BLU, COLORCODE_NONE };
+				subarea.addCodedMask(colorCodeMask,colorCodes[row*3+col]);
+			}
+		}
+		Mat visLut(480,640,CV_8UC3);
+		lut.InverseLut(colorCodeMask,visLut);
+		imshow("visLUT",visLut);
+		waitKey(0);
+
+		lut.ExtendLutToConformMask(src,colorCodeMask,maskSkipValue);
 	}
 };
 
@@ -255,7 +294,7 @@ void CalibrateLut(Mat &src)
 	Mat normalizedImage;
 	area.compensatePerspectiveTransform(src,normalizedImage);
 
-	RectangularArea subarea;
+	Tetragon subarea;
 	for(int row=0; row<2; row++)
 	{
 		for(int col=0; col<3; col++)
@@ -267,6 +306,8 @@ void CalibrateLut(Mat &src)
 
 	namedWindow( "Normalized", 1 );
     imshow( "Normalized", normalizedImage );
+
+	area.updateLUT(*lutColorFilter,normalizedImage);
 }
 
 

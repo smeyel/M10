@@ -17,6 +17,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libPlatformSpecifics", "Fra
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DetectorTrainingSetCreator", "DetectorTrainingSetCreator\DetectorTrainingSetCreator.vcxproj", "{CB70D3F1-F0EE-4199-96A0-4ADD8BEC1D8D}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libCommunication", "Framework\libCommunication\libCommunication.vcxproj", "{9E89C9BD-92D5-46A6-B7AB-B59A0DDFB391}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -55,6 +57,10 @@ Global
 		{CB70D3F1-F0EE-4199-96A0-4ADD8BEC1D8D}.Debug|Win32.Build.0 = Debug|Win32
 		{CB70D3F1-F0EE-4199-96A0-4ADD8BEC1D8D}.Release|Win32.ActiveCfg = Release|Win32
 		{CB70D3F1-F0EE-4199-96A0-4ADD8BEC1D8D}.Release|Win32.Build.0 = Release|Win32
+		{9E89C9BD-92D5-46A6-B7AB-B59A0DDFB391}.Debug|Win32.ActiveCfg = Debug|Win32
+		{9E89C9BD-92D5-46A6-B7AB-B59A0DDFB391}.Debug|Win32.Build.0 = Debug|Win32
+		{9E89C9BD-92D5-46A6-B7AB-B59A0DDFB391}.Release|Win32.ActiveCfg = Release|Win32
+		{9E89C9BD-92D5-46A6-B7AB-B59A0DDFB391}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
