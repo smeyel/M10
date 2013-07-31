@@ -32,7 +32,7 @@ Mat *lut;
 Mat *score;
 Mat *visLut;
 
-void processImage(const char *imageFileName, const char *maskFileName, LutColorFilter *filter, ImageTransitionStat *stat)
+void processImage(const char *imageFileName, const char *maskFileName, LutColorFilter *filter, ImageTransitionStat *stat, bool verboseAllImages=false)
 {
 	Mat image = imread(imageFileName);
 	Mat mask = imread(maskFileName);
@@ -45,15 +45,18 @@ void processImage(const char *imageFileName, const char *maskFileName, LutColorF
 	cout << "Processing file: " << imageFileName << " and " << maskFileName << ", size=" << image.cols << " x " << image.rows << endl;
 
 	Mat lut(image.rows,image.cols,CV_8UC1);
-//	Mat visLut(image.rows,image.cols,CV_8UC3);
 
 	filter->Filter(&image,&lut,NULL);
-//	filter->InverseLut(lut,visLut);
 
-/*	imshow("Teaching Image",image);
-	imshow("Teaching LUT Image",visLut);
-	imshow("Teaching Mask",mask);
-	waitKey(0);*/
+	if (verboseAllImages)
+	{
+		Mat visLut(image.rows,image.cols,CV_8UC3);
+		filter->InverseLut(lut,visLut);
+		imshow("Teaching Image",image);
+		imshow("Teaching LUT Image",visLut);
+		imshow("Teaching Mask",mask);
+		waitKey(0);
+	}
 
 	stat->addImageWithMask(lut,mask);
 }
@@ -200,7 +203,8 @@ class CalibrationArea : public Tetragon
 			{
 				Tetragon subarea;
 				getSubArea(row,col,subarea);
-				unsigned char colorCodes[] = { COLORCODE_BLK, COLORCODE_WHT, maskSkipValue, COLORCODE_RED, COLORCODE_GRN, COLORCODE_BLU };
+				unsigned char colorCodes[] = { COLORCODE_BLK, COLORCODE_WHT, maskSkipValue, COLORCODE_RED, COLORCODE_GRN, COLORCODE_BLK };
+//				unsigned char colorCodes[] = { COLORCODE_BLK, COLORCODE_WHT, maskSkipValue, COLORCODE_RED, COLORCODE_GRN, COLORCODE_BLU };
 //				unsigned char colorCodes[] = { COLORCODE_BLK, COLORCODE_WHT, maskSkipValue, COLORCODE_RED, COLORCODE_GRN, maskSkipValue };
 				subarea.addCodedMask(dst,colorCodes[row*3+col]);
 			}
@@ -362,7 +366,7 @@ void test_learnFromImagesAndMasks(const int firstFileIndex, const int lastFileIn
 		char maskFileName[128];
 		sprintf(imageFileName,"image%d.jpg",fileIndex);
 		sprintf(maskFileName,"mask%d.jpg",fileIndex);
-		processImage(imageFileName,maskFileName,lutColorFilter,stat);
+		processImage(imageFileName,maskFileName,lutColorFilter,stat,false);
 	}
 
 	// Fix dataset imbalances in the counter values
@@ -370,7 +374,7 @@ void test_learnFromImagesAndMasks(const int firstFileIndex, const int lastFileIn
 
 	// Set precisions
 	PixelPrecisionCalculator precisionCalculator(COUNTERIDX_ON,COUNTERIDX_OFF);
-	precisionCalculator.setPrecisionStatus(stat->counterTreeRoot,0.7F);	// TODO 0.9F !!!
+	precisionCalculator.setPrecisionStatus(stat->counterTreeRoot,0.9F);	// TODO 0.9F !!!
 
 	cout << "Current created SequenceCounterTreeNode number: " << SequenceCounterTreeNode::getSumCreatedNodeNumber() << endl;
 
