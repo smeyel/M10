@@ -1,3 +1,4 @@
+#include <string>
 #include "MyLutColorFilter.h"
 
 MyLutColorFilter::MyLutColorFilter()
@@ -15,9 +16,6 @@ void MyLutColorFilter::init()
 
 		// Get RGB, scale back to 0-255 to simplify the conditions
 		idx2rgb(i,r,g,b);
-/*		r = (i >> 6) << 5;
-		g = ((i >> 3) & 0x07) << 5;
-		b = (i & 0x07) << 5;*/
 
 		if (r == g &&  g == b && r <= 64)
 		{
@@ -57,4 +55,12 @@ void MyLutColorFilter::init()
 	SetInverseLut(COLORCODE_RED, 255,0,0);
 	SetInverseLut(COLORCODE_GRN, 0,255,0);
 	SetInverseLut(COLORCODE_BLU, 0,0,255);
+
+	// Set names
+	SetColorcodeName(COLORCODE_NONE,std::string("NONE"));
+	SetColorcodeName(COLORCODE_BLK,std::string("BLK"));
+	SetColorcodeName(COLORCODE_WHT,std::string("WHT"));
+	SetColorcodeName(COLORCODE_RED,std::string("RED"));
+	SetColorcodeName(COLORCODE_GRN,std::string("GRN"));
+	SetColorcodeName(COLORCODE_BLU,std::string("BLU"));
 }

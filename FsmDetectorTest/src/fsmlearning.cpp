@@ -189,6 +189,23 @@ class CalibrationArea : public Tetragon
 		corners[3] = Point2f( marks[3][0]-marks[3][2],marks[3][1]-marks[3][2] );
 	}
 
+	void createColorCodeMask(Mat &dst)
+	{
+		OPENCV_ASSERT(dst.type()==CV_8UC1, "createColorCodeMask", "ColorCode mask target type is not CV_8UC1.");
+		const unsigned char maskSkipValue = COLORCODE_NONE;
+		dst.setTo(maskSkipValue);
+		for(int row=0; row<2; row++)
+		{
+			for(int col=0; col<3; col++)
+			{
+				Tetragon subarea;
+				getSubArea(row,col,subarea);
+				unsigned char colorCodes[] = { COLORCODE_BLK, COLORCODE_WHT, maskSkipValue, COLORCODE_RED, COLORCODE_GRN, COLORCODE_BLU };
+				subarea.addCodedMask(dst,colorCodes[row*3+col]);
+			}
+		}
+	}
+
 public:
 	bool findInImage(Mat &src)
 	{
@@ -208,9 +225,9 @@ public:
 			 Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
 			 int radius = cvRound(circles[i][2]);
 			 // draw the circle center
-			 circle( src, center, 3, Scalar(0,255,0), -1, 8, 0 );
+//			 circle( src, center, 3, Scalar(0,255,0), -1, 8, 0 );
 			 // draw the circle outline
-			 circle( src, center, radius, Scalar(0,0,255), 3, 8, 0 );
+//			 circle( src, center, radius, Scalar(0,0,255), 3, 8, 0 );
 		}
 
 		if (circles.size() != 4)
@@ -256,28 +273,20 @@ public:
 		}
 	}
 
-	void updateLUT(LutColorFilter lut, Mat &src)
+	void updateLUT(LutColorFilter &lut, Mat &src)
 	{
-		// Go along subareas and create colorcode masks. Then call LUT update on src and the mask.
+		// Create color code mask
 		Mat colorCodeMask(src.rows, src.cols, CV_8UC1);
-		const unsigned char maskSkipValue = 0;
-		colorCodeMask.setTo(maskSkipValue);
-		for(int row=0; row<2; row++)
-		{
-			for(int col=0; col<3; col++)
-			{
-				Tetragon subarea;
-				getSubArea(row,col,subarea);
-				unsigned char colorCodes[] = { COLORCODE_BLK, COLORCODE_WHT, COLORCODE_RED, COLORCODE_GRN, COLORCODE_BLU, COLORCODE_NONE };
-				subarea.addCodedMask(colorCodeMask,colorCodes[row*3+col]);
-			}
-		}
-		Mat visLut(480,640,CV_8UC3);
-		lut.InverseLut(colorCodeMask,visLut);
-		imshow("visLUT",visLut);
-		waitKey(0);
 
-		lut.ExtendLutToConformMask(src,colorCodeMask,maskSkipValue);
+		createColorCodeMask(colorCodeMask);
+
+		/*Mat visLut(src.rows, src.cols, CV_8UC3);
+		lut.InverseLut(colorCodeMask,visLut);
+		imshow("LUT adapt mask (vis)",visLut);
+		imshow("LUT adapt src",src);
+		waitKey(0);*/
+
+		lut.ExtendLutToConformMask(src,colorCodeMask,COLORCODE_NONE);
 	}
 };
 
@@ -289,23 +298,25 @@ void CalibrateLut(Mat &src)
 	{
 		return;	// Not found...
 	}
-	area.draw(src,Scalar(100,255,100));
+	//area.draw(src,Scalar(100,255,100));
 
 	Mat normalizedImage;
 	area.compensatePerspectiveTransform(src,normalizedImage);
 
+	// Debug visualization
+	Mat verboseImage;
+	normalizedImage.copyTo(verboseImage);
 	Tetragon subarea;
 	for(int row=0; row<2; row++)
 	{
 		for(int col=0; col<3; col++)
 		{
 			area.getSubArea(row,col,subarea);
-			subarea.draw(normalizedImage,Scalar(255,100,100));
+			subarea.draw(verboseImage,Scalar(255,100,100));
 		}
 	}
-
-	namedWindow( "Normalized", 1 );
-    imshow( "Normalized", normalizedImage );
+	namedWindow( "Normalized (verbose)", 1 );
+    imshow( "Normalized (verbose)", verboseImage );
 
 	area.updateLUT(*lutColorFilter,normalizedImage);
 }
