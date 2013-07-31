@@ -21,21 +21,12 @@
     <ClCompile Include="src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\MyLutColorFilter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\dagnode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\fsmlearning.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\MyColorCodes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\MyLutColorFilter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\myconfigmanager.h">

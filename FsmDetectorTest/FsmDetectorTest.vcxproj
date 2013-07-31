@@ -85,14 +85,11 @@
   <ItemGroup>
     <ClCompile Include="src\fsmlearning.cpp" />
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\MyLutColorFilter.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\dagnode.h" />
     <ClInclude Include="include\fsmlearning.h" />
-    <ClInclude Include="include\MyColorCodes.h" />
     <ClInclude Include="include\myconfigmanager.h" />
-    <ClInclude Include="include\MyLutColorFilter.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Framework\libCameraAbstraction\libCameraAbstraction.vcxproj">
