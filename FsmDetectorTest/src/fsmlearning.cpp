@@ -22,12 +22,10 @@ using namespace cv;
 using namespace LogConfigTime;
 using namespace smeyel;
 
-//#include "FsmLearner.h"
-
 char *configfilename = "default.ini";
 MyConfigManager configmanager;
 
-vector<string> inputValueNames(7);
+//vector<string> inputValueNames(7);
 
 Mat *src;
 Mat *lut;
@@ -89,7 +87,7 @@ void mouse_callback(int eventtype, int x, int y, int flags, void *param)
 		cout << "Pixel data:" << endl;
 		cout << "   real RGB: " << (int)rOrig << "," << (int)gOrig << "," << (int)bOrig << endl;
 		cout << "   quantizedRGB: " << (int)rNew << "," << (int)gNew << "," << (int)bNew << endl;
-		cout << "   LUT value: (" << (int)colorCode << ") " << inputValueNames[colorCode] << endl;
+		cout << "   LUT value: (" << (int)colorCode << ") " << lutColorFilter->GetColorcodeName(colorCode) << endl;
 		lastLutIdx = lutColorFilter->rgb2idx(rOrig,gOrig,bOrig);
 	}
 }
@@ -137,13 +135,6 @@ void test_learnFromImagesAndMasks(const int firstFileIndex, const int lastFileIn
 	configmanager.init(configfilename);
 
 	int markovChainOrder = 100;
-
-	inputValueNames[COLORCODE_BLK]=string("BLK");
-	inputValueNames[COLORCODE_WHT]=string("WHT");
-	inputValueNames[COLORCODE_RED]=string("RED");
-	inputValueNames[COLORCODE_GRN]=string("GRN");
-	inputValueNames[COLORCODE_BLU]=string("BLU");
-	inputValueNames[COLORCODE_NONE]=string("NON");
 
 	Logger *logger = new StdoutLogger();
 	//Logger *logger = new FileLogger("log.txt");
@@ -233,10 +224,7 @@ void test_learnFromImagesAndMasks(const int firstFileIndex, const int lastFileIn
 			break;
 		case 'c':	// Lut change	
 			cout << "LUT modification for idx " << lastLutIdx << endl;
-			for(unsigned int i=0; i<inputValueNames.size(); i++)
-			{
-				cout << "   code " << i << ": " << inputValueNames[i] << endl;
-			}
+			lutColorFilter->ShowColorcodeNames(cout);
 			cout << "Choose by pressing the corresponding number." << endl;
 			newLutValue = waitKey(0) - '0';
 			lutColorFilter->setLutItemByIdx(lastLutIdx,newLutValue);
