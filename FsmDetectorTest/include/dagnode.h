@@ -7,6 +7,7 @@ using namespace std;
 
 namespace smeyel
 {
+	/** Yet unused and untested. */
 	class DagNode
 	{
 	private:
