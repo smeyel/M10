@@ -25,13 +25,13 @@ using namespace smeyel;
 char *configfilename = "default.ini";
 MyConfigManager configmanager;
 
-//vector<string> inputValueNames(7);
-
 Mat *src;
 Mat *lut;
 Mat *score;
 Mat *visLut;
 
+// Learning marker appearance model based on an image and a mask file.
+// Creates the color sequence statistics.
 void processImage(const char *imageFileName, const char *maskFileName, LutColorFilter *filter, ImageTransitionStat *stat, bool verboseAllImages=false)
 {
 	Mat image = imread(imageFileName);
@@ -66,6 +66,7 @@ Point lastMouseClickLocation;
 unsigned int lastLutIdx;
 DefaultLutColorFilter *lutColorFilter;
 
+// Mouse callback to retrieve debug information at pixel locations
 void mouse_callback(int eventtype, int x, int y, int flags, void *param)
 {
 	if (eventtype == CV_EVENT_LBUTTONDOWN)
@@ -92,7 +93,7 @@ void mouse_callback(int eventtype, int x, int y, int flags, void *param)
 	}
 }
 
-
+// Calibration of the LitColorFilter based on the image of a calibration pattern.
 void CalibrateLut(Mat &src)
 {
 	LutCalibrationPattern area;
@@ -123,7 +124,7 @@ void CalibrateLut(Mat &src)
 	area.updateLUT(*lutColorFilter,normalizedImage);
 }
 
-
+// Entry point of this module, called from main()
 void test_learnFromImagesAndMasks(const int firstFileIndex, const int lastFileIndex, const char *configFileName = NULL)
 {
 	if (configFileName != NULL)
@@ -141,6 +142,7 @@ void test_learnFromImagesAndMasks(const int firstFileIndex, const int lastFileIn
 	logger->SetLogLevel(Logger::LOGLEVEL_WARNING);
 	//logger->SetLogLevel(Logger::LOGLEVEL_VERBOSE);
 
+	// Create LUT Color filter, load from file
 	lutColorFilter = new DefaultLutColorFilter();
 	if (configmanager.loadLutAtStartup)
 	{
@@ -148,8 +150,11 @@ void test_learnFromImagesAndMasks(const int firstFileIndex, const int lastFileIn
 		lutColorFilter->load(configmanager.lutFile.c_str());
 	}
 
+	// ------------------- Training the marker detector -----------------------
+	// Create transition stat calculator.
 	ImageTransitionStat *stat = new ImageTransitionStat(8,markovChainOrder, configmanager.runLengthTransformFile.c_str());
 
+	// Learns the marker appearance model from images+masks.
 	for(int fileIndex=firstFileIndex; fileIndex<=lastFileIndex; fileIndex++)
 	{
 		char imageFileName[128];
@@ -159,18 +164,20 @@ void test_learnFromImagesAndMasks(const int firstFileIndex, const int lastFileIn
 		processImage(imageFileName,maskFileName,lutColorFilter,stat,false);
 	}
 
-	// Fix dataset imbalances in the counter values
+	// Fixes dataset imbalances in the counter values
+	// This is required after creating the sequence statistics and before calculating the precisions.
 	stat->balanceCounter(COUNTERIDX_ON, COUNTERIDX_OFF, false);
 
-	// Set precisions
+	// Calculate sequence precisions if used for detection
 	PixelPrecisionCalculator precisionCalculator(COUNTERIDX_ON,COUNTERIDX_OFF);
-	precisionCalculator.setPrecisionStatus(stat->counterTreeRoot,0.9F);	// TODO 0.9F !!!
+	precisionCalculator.setPrecisionStatus(stat->counterTreeRoot,0.9F);
 
 	cout << "Current created SequenceCounterTreeNode number: " << SequenceCounterTreeNode::getSumCreatedNodeNumber() << endl;
 
+	// Create the transform class used later to use the sequence statistics for detection.
 	PixelScoreImageTransform scoreTransform(stat);
 
-	// -------------- Now start camera and apply statistics (auxScore mask) to the frames
+	// ------------------- Now start camera and apply statistics (auxScore mask) to the frames -----------------------
 	CameraLocalProxy *camProxy0 = new CameraLocalProxy(VIDEOINPUTTYPE_PS3EYE,0);
 	camProxy0->getVideoInput()->SetNormalizedExposure(-1);
 	camProxy0->getVideoInput()->SetNormalizedGain(-1);
@@ -187,6 +194,7 @@ void test_learnFromImagesAndMasks(const int firstFileIndex, const int lastFileIn
 	score = new Mat(480,640,CV_8UC1);
 	visLut = new Mat(480,640,CV_8UC3);
 
+	// ------------------- Main loop (using keyboard commands) -----------------------
 	bool running=true;
 	bool capture=true;
 	while(running) //Show the image captured in the window and repeat

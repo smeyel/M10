@@ -21,6 +21,10 @@ using namespace cv;
 using namespace smeyel;
 using namespace LogConfigTime; */
 
+/** This program uses a local camera picture to locate pre-learned marker locations.
+	- 
+*/
+
 int main(int argc, char *argv[], char *window_name)
 {
 	test_learnFromImagesAndMasks(0,14,NULL);
