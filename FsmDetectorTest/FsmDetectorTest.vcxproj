@@ -83,11 +83,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\foregrounddetection.cpp" />
     <ClCompile Include="src\fsmlearning.cpp" />
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\dagnode.h" />
+    <ClInclude Include="include\foregrounddetection.h" />
     <ClInclude Include="include\fsmlearning.h" />
     <ClInclude Include="include\myconfigmanager.h" />
   </ItemGroup>

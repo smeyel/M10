@@ -15,6 +15,7 @@
 //#include "TransitionStat.h"
 
 #include "fsmlearning.h"
+#include "foregrounddetection.h"
 
 /*using namespace std;
 using namespace cv;
@@ -27,5 +28,6 @@ using namespace LogConfigTime; */
 
 int main(int argc, char *argv[], char *window_name)
 {
-	test_learnFromImagesAndMasks(0,14,NULL);
+	//test_learnFromImagesAndMasks(0,14,NULL);
+	test_foregroundDetector(NULL);
 }
