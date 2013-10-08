@@ -8,15 +8,17 @@
 
 #include "DefaultLutColorFilter.h"
 #include "StdoutLogger.h"
-#include "FileLogger.h"
+//#include "FileLogger.h"
 
 #include "myconfigmanager.h"
 
-#include "ImageTransitionStat.h"
-#include "PixelPrecisionCalculator.h"
-#include "PixelScoreImageTransform.h"
+//#include "ImageTransitionStat.h"
+//#include "PixelPrecisionCalculator.h"
+//#include "PixelScoreImageTransform.h"
 
-#include "LutCalibrationPattern.h"
+//#include "LutCalibrationPattern.h"
+
+#include "LutDiffColorFilter.h"
 
 using namespace cv;
 using namespace LogConfigTime;
@@ -54,11 +56,14 @@ void test_foregroundDetector(const char *configFileName = NULL)
 	logger->SetLogLevel(Logger::LOGLEVEL_WARNING);
 
 	// Create LUT Color filter, load from file
+	LutDiffColorFilter *lutDiffColorFilter = new LutDiffColorFilter();
 	lutColorFilter = new DefaultLutColorFilter();
 	if (configmanager.loadLutAtStartup)
 	{
 		cout << "Loading LUT from " << configmanager.lutFile << endl;
 		lutColorFilter->load(configmanager.lutFile.c_str());
+		lutDiffColorFilter->InitInverseLut(0,0,0);
+		lutDiffColorFilter->load(configmanager.lutFile.c_str());
 	}
 
 	// ------------------- Now start camera and apply statistics (auxScore mask) to the frames -----------------------
@@ -84,6 +89,8 @@ void test_foregroundDetector(const char *configFileName = NULL)
 	src = new Mat(480,640,CV_8UC3);
 	lut = new Mat(480,640,CV_8UC1);
 	visLut = new Mat(480,640,CV_8UC3);
+	Mat *background = new Mat(480,640,CV_8UC3);
+	Mat *resultMask = new Mat(480,640,CV_8UC1);
 
 	// ------------------- Main loop (using keyboard commands) -----------------------
 	bool running=true;
@@ -102,8 +109,11 @@ void test_foregroundDetector(const char *configFileName = NULL)
 		lutColorFilter->Filter(src,lut,NULL);	// LUT may be changed...
 		lutColorFilter->InverseLut(*lut,*visLut);	// May be changed at mouse clicks
 
+		lutDiffColorFilter->Filter(background,src,resultMask);
+
 		imshow("SRC",*src);
 		imshow("LUT",*visLut);
+		imshow("ResultMask",*resultMask);
 
 		char ch = waitKey(25);
 		unsigned char newLutValue;
@@ -114,6 +124,10 @@ void test_foregroundDetector(const char *configFileName = NULL)
 			break;
 		case 'p':
 			capture = !capture;
+			break;
+		case 'b':
+			cout << "Copy current frame to background..." << endl;
+			src->copyTo(*background);
 			break;
 		case 'c':	// Lut change	
 			cout << "LUT modification for idx " << lastLutIdx << endl;
