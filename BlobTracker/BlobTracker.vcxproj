@@ -1,0 +1,117 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{2C8C2716-7283-4D53-ACD9-824C2A9DC4F1}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>BlobTracker</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\props\OpenCV_Debug.props" />
+    <Import Project="..\ImageProcessing\props\ImageProcessing.props" />
+    <Import Project="..\Framework\props\Framework.props" />
+    <Import Project="..\Tracking\props\Tracking.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\props\OpenCV_Release.props" />
+    <Import Project="..\ImageProcessing\props\ImageProcessing.props" />
+    <Import Project="..\Framework\props\Framework.props" />
+    <Import Project="..\Tracking\props\Tracking.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>include; $(SolutionDir)cvblob/cvBlob; %(AdditionalIncludeDirectories);$(SolutionDir)Tracking/lib3dWorld/include</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="src\main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\myconfigmanager.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\cvblob\cvblob.vcxproj">
+      <Project>{03a49657-2c8c-4150-9d73-f2f5ed2617d1}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Framework\libCameraAbstraction\libCameraAbstraction.vcxproj">
+      <Project>{a3e85482-db13-4d6a-8dec-c07b6f29aac7}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Framework\libLogConfigTime\libLogConfigTime.vcxproj">
+      <Project>{8927a516-de0f-4550-ae3f-14876252f716}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Framework\libPlatformSpecifics\libPlatformSpecifics.vcxproj">
+      <Project>{5c2abdc3-6e47-40c0-80a1-a020f188f756}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Framework\libVideoInput\libVideoInput.vcxproj">
+      <Project>{f0b55c60-9485-43e1-87e2-ede6a73cceef}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\ImageProcessing\libImageFilter\libImageFilter.vcxproj">
+      <Project>{7aed9fee-4243-4622-b4dd-413a157e446b}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Tracking\lib3dWorld\lib3dWorld.vcxproj">
+      <Project>{f0b1d97e-ec76-4eb1-8421-f73cf5881a69}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
