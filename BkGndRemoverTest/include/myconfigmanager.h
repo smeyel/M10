@@ -14,6 +14,9 @@ class MyConfigManager
 
 		loadLutAtStartup = reader->getBoolValue("main","loadLutAtStartup");
 		lutFile = reader->getStringValue("main","lutFile");
+
+		videoInputFileOverride = reader->getBoolValue("input","videoInputFileOverride");
+		videoInputFilename = reader->getStringValue("input","videoInputFilename");
 		return true;
 	}
 
@@ -26,6 +29,8 @@ public:
 	// --- Settings
 	bool loadLutAtStartup;
 	std::string lutFile;
+	bool videoInputFileOverride;
+	std::string videoInputFilename;
 };
 
 #endif

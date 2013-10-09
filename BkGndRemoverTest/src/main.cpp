@@ -1,6 +1,10 @@
 #include <iostream>	// for standard I/O
 #include <fstream>
 
+#include<opencv2/opencv.hpp>
+#include<iostream>
+#include<vector>
+ 
 #include <opencv2/core/core.hpp>        // Basic OpenCV structures (cv::Mat)
 #include <opencv2/highgui/highgui.hpp>  // Video write
 
@@ -91,7 +95,15 @@ void test_bkgndRemove(const int firstFileIndex, const int lastFileIndex, const c
 	}
 
 	// ------------------- Now start camera and apply statistics (auxScore mask) to the frames -----------------------
-	CameraLocalProxy *camProxy0 = new CameraLocalProxy(VIDEOINPUTTYPE_PS3EYE,0);
+	CameraLocalProxy *camProxy0;
+	if (configmanager.videoInputFileOverride)
+	{
+		camProxy0 = new CameraLocalProxy(configmanager.videoInputFilename.c_str());
+	}
+	else
+	{
+		camProxy0 = new CameraLocalProxy(VIDEOINPUTTYPE_PS3EYE,0);
+	}
 	camProxy0->getVideoInput()->SetNormalizedExposure(-1);
 	camProxy0->getVideoInput()->SetNormalizedGain(-1);
 	camProxy0->getVideoInput()->SetNormalizedWhiteBalance(-1,-1,-1);
@@ -152,7 +164,72 @@ void test_bkgndRemove(const int firstFileIndex, const int lastFileIndex, const c
 	}
 }
 
+void test_BackgroundSubtractor(const char *overrideConfigFileName = NULL)
+{
+	if (overrideConfigFileName != NULL)
+	{
+		// INI file is given as command line parameter
+		strcpy(configfilename,overrideConfigFileName);
+	}
+	// Setup config management
+	configmanager.init(configfilename);
+
+	Logger *logger = new StdoutLogger();
+	logger->SetLogLevel(Logger::LOGLEVEL_WARNING);
+
+	CameraLocalProxy *camProxy0;
+	if (configmanager.videoInputFileOverride)
+	{
+		camProxy0 = new CameraLocalProxy(configmanager.videoInputFilename.c_str());
+	}
+	else
+	{
+		camProxy0 = new CameraLocalProxy(VIDEOINPUTTYPE_PS3EYE,0);
+	}
+	camProxy0->getVideoInput()->SetNormalizedExposure(-1);
+	camProxy0->getVideoInput()->SetNormalizedGain(-1);
+	camProxy0->getVideoInput()->SetNormalizedWhiteBalance(-1,-1,-1);
+
+	namedWindow("SRC", CV_WINDOW_AUTOSIZE);
+	namedWindow("BACK", CV_WINDOW_AUTOSIZE);
+	namedWindow("FORE", CV_WINDOW_AUTOSIZE);
+
+	Mat *sourceFrame = new Mat(480,640,CV_8UC3);
+	Mat *backgroundFrame = new Mat(480,640,CV_8UC1);
+	Mat *foregroundFrame = new Mat(480,640,CV_8UC1);
+
+    BackgroundSubtractorMOG2 *backgroundSubtractor = new BackgroundSubtractorMOG2(10,16,false);
+ 
+    std::vector<std::vector<cv::Point> > contours;
+
+	bool finished = false;
+	while (!finished)
+	{
+		camProxy0->CaptureImage(0,sourceFrame);
+
+		backgroundSubtractor->operator()(*sourceFrame,*foregroundFrame);
+		backgroundSubtractor->getBackgroundImage(*backgroundFrame);
+        erode(*foregroundFrame,*foregroundFrame,cv::Mat());
+        dilate(*foregroundFrame,*foregroundFrame,cv::Mat());
+        findContours(*foregroundFrame,contours,CV_RETR_EXTERNAL,CV_CHAIN_APPROX_NONE);
+        drawContours(*sourceFrame,contours,-1,cv::Scalar(0,0,255),2);
+        imshow("SRC",*sourceFrame);
+        imshow("BACK",*backgroundFrame);
+        imshow("FORE",*foregroundFrame);
+
+		char ch = waitKey(25);
+		switch (ch)
+		{
+		case 27:
+			finished=true;
+			break;
+		}
+	}
+}
+
+
 int main(int argc, char *argv[], char *window_name)
 {
-	test_bkgndRemove(0,14,NULL);
+	//test_bkgndRemove(0,14,NULL);
+	test_BackgroundSubtractor();
 }
