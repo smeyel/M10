@@ -31,15 +31,14 @@ using namespace smeyel;
 
 char *configfilename = "default.ini";
 MyConfigManager configmanager;
-
+CameraLocalProxy *camProxy = NULL;
 Mat *src;
-Mat *lut;
-Mat *foreground;
-Mat *visLut;
 
+// Globals used by mouse event handler
 Point lastMouseClickLocation;
 unsigned int lastLutIdx;
 DefaultLutColorFilter *lutColorFilter;
+
 
 // Mouse callback to retrieve debug information at pixel locations
 void mouse_callback(int eventtype, int x, int y, int flags, void *param)
@@ -68,23 +67,40 @@ void mouse_callback(int eventtype, int x, int y, int flags, void *param)
 	}
 }
 
-// Entry point of this module, called from main()
-void test_bkgndRemove(const int firstFileIndex, const int lastFileIndex, const char *configFileName = NULL)
+void init_defaults(const char *overrideConfigFileName = NULL)
 {
-	if (configFileName != NULL)
+	if (overrideConfigFileName != NULL)
 	{
 		// INI file is given as command line parameter
-		strcpy(configfilename,configFileName);
+		strcpy(configfilename,overrideConfigFileName);
 	}
 	// Setup config management
 	configmanager.init(configfilename);
 
-	int markovChainOrder = 100;
-
 	Logger *logger = new StdoutLogger();
-	//Logger *logger = new FileLogger("log.txt");
 	logger->SetLogLevel(Logger::LOGLEVEL_WARNING);
-	//logger->SetLogLevel(Logger::LOGLEVEL_VERBOSE);
+
+	if (configmanager.videoInputFileOverride)
+	{
+		camProxy = new CameraLocalProxy(configmanager.videoInputFilename.c_str());
+	}
+	else
+	{
+		camProxy = new CameraLocalProxy(VIDEOINPUTTYPE_PS3EYE,0);
+	}
+	camProxy->getVideoInput()->SetNormalizedExposure(-1);
+	camProxy->getVideoInput()->SetNormalizedGain(-1);
+	camProxy->getVideoInput()->SetNormalizedWhiteBalance(-1,-1,-1);
+
+	src = new Mat(480,640,CV_8UC3);
+}
+
+// Entry point of this module, called from main()
+void test_bkgndRemove(const int firstFileIndex, const int lastFileIndex, const char *overrideConfigFileName = NULL)
+{
+	init_defaults(overrideConfigFileName);
+
+	int markovChainOrder = 100;
 
 	// Create LUT Color filter, load from file
 	lutColorFilter = new DefaultLutColorFilter();
@@ -94,30 +110,15 @@ void test_bkgndRemove(const int firstFileIndex, const int lastFileIndex, const c
 		lutColorFilter->load(configmanager.lutFile.c_str());
 	}
 
-	// ------------------- Now start camera and apply statistics (auxScore mask) to the frames -----------------------
-	CameraLocalProxy *camProxy0;
-	if (configmanager.videoInputFileOverride)
-	{
-		camProxy0 = new CameraLocalProxy(configmanager.videoInputFilename.c_str());
-	}
-	else
-	{
-		camProxy0 = new CameraLocalProxy(VIDEOINPUTTYPE_PS3EYE,0);
-	}
-	camProxy0->getVideoInput()->SetNormalizedExposure(-1);
-	camProxy0->getVideoInput()->SetNormalizedGain(-1);
-	camProxy0->getVideoInput()->SetNormalizedWhiteBalance(-1,-1,-1);
-
 	namedWindow("SRC", CV_WINDOW_AUTOSIZE);
 	namedWindow("LUT", CV_WINDOW_AUTOSIZE);
-	namedWindow("Foreground", CV_WINDOW_AUTOSIZE);
+	cvSetMouseCallback("SRC", mouse_callback);
 	cvSetMouseCallback("LUT", mouse_callback);
-	cvSetMouseCallback("Foreground", mouse_callback);
 
 	src = new Mat(480,640,CV_8UC3);
-	lut = new Mat(480,640,CV_8UC1);
-	foreground = new Mat(480,640,CV_8UC1);
-	visLut = new Mat(480,640,CV_8UC3);
+	Mat *lut = new Mat(480,640,CV_8UC1);
+	Mat *foreground = new Mat(480,640,CV_8UC1);
+	Mat *visLut = new Mat(480,640,CV_8UC3);
 
 	DetectionBoundingBoxCollector collector(new SimpleBoundingBoxValidator());
 
@@ -128,14 +129,13 @@ void test_bkgndRemove(const int firstFileIndex, const int lastFileIndex, const c
 	{
 		if (capture)
 		{
-			camProxy0->CaptureImage(0,src);
+			camProxy->CaptureImage(0,src);
 		}
 		lutColorFilter->Filter(src,lut,NULL);	// LUT may be changed...
 		lutColorFilter->InverseLut(*lut,*visLut);	// May be changed at mouse clicks
 
 		imshow("SRC",*src);
 		imshow("LUT",*visLut);
-		imshow("Foreground",*foreground);
 
 		char ch = waitKey(25);
 		unsigned char newLutValue;
@@ -166,35 +166,13 @@ void test_bkgndRemove(const int firstFileIndex, const int lastFileIndex, const c
 
 void test_BackgroundSubtractor(const char *overrideConfigFileName = NULL)
 {
-	if (overrideConfigFileName != NULL)
-	{
-		// INI file is given as command line parameter
-		strcpy(configfilename,overrideConfigFileName);
-	}
-	// Setup config management
-	configmanager.init(configfilename);
-
-	Logger *logger = new StdoutLogger();
-	logger->SetLogLevel(Logger::LOGLEVEL_WARNING);
-
-	CameraLocalProxy *camProxy0;
-	if (configmanager.videoInputFileOverride)
-	{
-		camProxy0 = new CameraLocalProxy(configmanager.videoInputFilename.c_str());
-	}
-	else
-	{
-		camProxy0 = new CameraLocalProxy(VIDEOINPUTTYPE_PS3EYE,0);
-	}
-	camProxy0->getVideoInput()->SetNormalizedExposure(-1);
-	camProxy0->getVideoInput()->SetNormalizedGain(-1);
-	camProxy0->getVideoInput()->SetNormalizedWhiteBalance(-1,-1,-1);
+	init_defaults(overrideConfigFileName);
 
 	namedWindow("SRC", CV_WINDOW_AUTOSIZE);
 	namedWindow("BACK", CV_WINDOW_AUTOSIZE);
 	namedWindow("FORE", CV_WINDOW_AUTOSIZE);
 
-	Mat *sourceFrame = new Mat(480,640,CV_8UC3);
+	src = new Mat(480,640,CV_8UC3);
 	Mat *backgroundFrame = new Mat(480,640,CV_8UC1);
 	Mat *foregroundFrame = new Mat(480,640,CV_8UC1);
 
@@ -205,15 +183,19 @@ void test_BackgroundSubtractor(const char *overrideConfigFileName = NULL)
 	bool finished = false;
 	while (!finished)
 	{
-		camProxy0->CaptureImage(0,sourceFrame);
+		if (!camProxy->CaptureImage(0,src))
+		{
+			finished=true;
+			break;
+		}
 
-		backgroundSubtractor->operator()(*sourceFrame,*foregroundFrame);
+		backgroundSubtractor->operator()(*src,*foregroundFrame);
 		backgroundSubtractor->getBackgroundImage(*backgroundFrame);
         erode(*foregroundFrame,*foregroundFrame,cv::Mat());
         dilate(*foregroundFrame,*foregroundFrame,cv::Mat());
         findContours(*foregroundFrame,contours,CV_RETR_EXTERNAL,CV_CHAIN_APPROX_NONE);
-        drawContours(*sourceFrame,contours,-1,cv::Scalar(0,0,255),2);
-        imshow("SRC",*sourceFrame);
+        drawContours(*src,contours,-1,cv::Scalar(0,0,255),2);
+        imshow("SRC",*src);
         imshow("BACK",*backgroundFrame);
         imshow("FORE",*foregroundFrame);
 
@@ -226,7 +208,6 @@ void test_BackgroundSubtractor(const char *overrideConfigFileName = NULL)
 		}
 	}
 }
-
 
 int main(int argc, char *argv[], char *window_name)
 {
