@@ -15,7 +15,9 @@ class CvBlobWrapper
 public:
 	CvBlobWrapper();
 	~CvBlobWrapper();
-	void findBlobs(cv::Mat *src, cv::Mat *result);
+	void findBlobsInRgb(cv::Mat *src, cv::Mat *result);
+	void findWhiteBlobs(cv::Mat *src, cv::Mat *result);
+	
 };
 
 #endif

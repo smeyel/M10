@@ -20,8 +20,9 @@ CvBlobWrapper::~CvBlobWrapper()
 	cvReleaseBlobs(blobs);
 }
 
-void CvBlobWrapper::findBlobs(Mat *src, Mat *result)
+void CvBlobWrapper::findBlobsInRgb(Mat *src, Mat *result)
 {
+	OPENCV_ASSERT(src->channels()==3,"CvBlobWrapper::findBlobs","Src needs to have 3 channels!");
 	Size imgSize = src->size();
 	IplImage img = *src;
 
@@ -87,6 +88,54 @@ void CvBlobWrapper::findBlobs(Mat *src, Mat *result)
     //frameNumber++;
 
   cvReleaseImage(&frame);
+
+  return;
+}
+
+void CvBlobWrapper::findWhiteBlobs(Mat *src, Mat *result)
+{
+	IplImage imgSrc = *src;
+	IplImage imgRes = *result;
+
+    cvMorphologyEx(&imgSrc, &imgSrc, NULL, morphKernel, CV_MOP_OPEN, 1);
+
+    //cvShowImage("segmentated", segmentated);
+
+    IplImage *labelImg = cvCreateImage(cvGetSize(&imgSrc), IPL_DEPTH_LABEL, 1);
+
+    unsigned int labelNum = cvLabel(&imgSrc, labelImg, blobs);
+    cvb::cvFilterByArea(blobs, 500, 1000000);
+    cvb::cvRenderBlobs(labelImg, blobs, &imgSrc, &imgRes, CV_BLOB_RENDER_BOUNDING_BOX);
+    cvb::cvUpdateTracks(blobs, tracks, 200., 5);
+    cvb::cvRenderTracks(tracks, &imgSrc, &imgRes, CV_TRACK_RENDER_ID|CV_TRACK_RENDER_BOUNDING_BOX);
+
+//    cvShowImage("red_object_tracking", frame);
+
+    /*std::stringstream filename;
+    filename << "redobject_" << std::setw(5) << std::setfill('0') << frameNumber << ".png";
+    cvSaveImage(filename.str().c_str(), frame);*/
+
+    cvReleaseImage(&labelImg);
+//    cvReleaseImage(&segmentatedIpl);
+
+	Mat tempMat(&imgRes,true);
+	tempMat.copyTo(*result);
+
+        /*for (CvBlobs::const_iterator it=blobs.begin(); it!=blobs.end(); ++it)
+        {
+          std::stringstream filename;
+          filename << "redobject_blob_" << std::setw(5) << std::setfill('0') << blobNumber << ".png";
+          cvSaveImageBlob(filename.str().c_str(), img, it->second);
+          blobNumber++;
+
+          std::cout << filename.str() << " saved!" << std::endl;
+        }
+        break;*/
+
+
+    //frameNumber++;
+
+//  cvReleaseImage(img);
 
   return;
 }

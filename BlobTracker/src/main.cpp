@@ -41,7 +41,6 @@ Point lastMouseClickLocation;
 unsigned int lastLutIdx;
 DefaultLutColorFilter *lutColorFilter;
 
-
 // Mouse callback to retrieve debug information at pixel locations
 void mouse_callback(int eventtype, int x, int y, int flags, void *param)
 {
@@ -157,9 +156,92 @@ void test_CvBlobLib(const char *overrideConfigFileName = NULL)
 	bool finish = false;
 	while (!finish && camProxy->CaptureImage(0,src))
 	{
-		cvblob->findBlobs(src,result);
+		cvblob->findBlobsInRgb(src,result);
 
 		imshow("SRC", *src);
+		imshow("RES", *result);
+
+		char k = cvWaitKey(25);
+		switch (k)
+		{
+			case 27:
+				finish = true;
+			break;
+			break;
+		}
+	}
+}
+
+void drawContourAsPolygon(Mat *img, vector<Point> contour, Scalar color)
+{
+	// create a pointer to the data as an array of points (via a conversion to 
+	// a Mat() object)
+	const cv::Point *pts = (const cv::Point*) Mat(contour).data;
+	int npts = Mat(contour).rows;
+
+	//std::cout << "Number of polygon vertices: " << npts << std::endl;
+	
+	// draw the polygon 
+	//polylines(*img, &pts,&npts, 1, true, Scalar(0,255,0), 3);
+	fillPoly(*img, &pts,&npts, 1, color);
+}
+
+
+void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
+{
+	init_defaults(overrideConfigFileName);
+
+	CvBlobWrapper *cvblob = new CvBlobWrapper();
+
+	src = new Mat(480,640,CV_8UC3);
+	Mat *backgroundFrame = new Mat(480,640,CV_8UC1);
+	Mat *foregroundFrame = new Mat(480,640,CV_8UC1);
+	Mat *result = new Mat(480,640,CV_8UC3);
+	Mat *blurredSrc = new Mat(480,640,CV_8UC3);
+
+	namedWindow("SRC", CV_WINDOW_AUTOSIZE);
+	namedWindow("BACK", CV_WINDOW_AUTOSIZE);
+	namedWindow("FORE", CV_WINDOW_AUTOSIZE);
+	namedWindow("RES", CV_WINDOW_AUTOSIZE);
+
+	BackgroundSubtractorMOG2 *backgroundSubtractor = new BackgroundSubtractorMOG2(100,50,false);	// Originally hist=10, thres=16
+    std::vector<std::vector<cv::Point> > contours;
+
+	Mat openKernel = getStructuringElement(MORPH_ELLIPSE, Size(10,10));
+
+	bool finish = false;
+	while (!finish && camProxy->CaptureImage(0,src))
+	{
+		cv::blur(*src,*blurredSrc,cv::Size(10,10));
+		backgroundSubtractor->operator()(*blurredSrc,*foregroundFrame);
+		morphologyEx(*foregroundFrame,*foregroundFrame,MORPH_OPEN,openKernel,Point(-1,-1),1);
+//        erode(*foregroundFrame,*foregroundFrame,cv::Mat());
+//        dilate(*foregroundFrame,*foregroundFrame,cv::Mat());
+        findContours(*foregroundFrame,contours,CV_RETR_EXTERNAL,CV_CHAIN_APPROX_NONE);
+
+        drawContours(*src,contours,-1,cv::Scalar(0,0,255),2);
+		imshow("SRC",*src);
+
+		if (contours.size()>0)
+		{
+			int colorIncrement = 255 / contours.size();
+			for(int contourIdx=0; contourIdx<contours.size(); contourIdx++)
+			{
+				unsigned char color = (contourIdx+1)*colorIncrement;
+				drawContourAsPolygon(foregroundFrame, contours[contourIdx], Scalar(color));
+			}
+		}
+
+
+        imshow("FORE",*foregroundFrame);
+
+		// Just for couriosity...
+		backgroundSubtractor->getBackgroundImage(*backgroundFrame);
+        imshow("BACK",*backgroundFrame);
+
+		// Tracking blobs
+		src->copyTo(*result);
+		cvblob->findWhiteBlobs(foregroundFrame,result);
 		imshow("RES", *result);
 
 		char k = cvWaitKey(25);
@@ -176,5 +258,6 @@ void test_CvBlobLib(const char *overrideConfigFileName = NULL)
 int main(int argc, char *argv[], char *window_name)
 {
 	//test_BackgroundSubtractor();
-	test_CvBlobLib();
+	//test_CvBlobLib();
+	test_BlobOnForeground();
 }
