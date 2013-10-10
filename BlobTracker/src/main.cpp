@@ -186,6 +186,16 @@ void drawContourAsPolygon(Mat *img, vector<Point> contour, Scalar color)
 	fillPoly(*img, &pts,&npts, 1, color);
 }
 
+class MyBackgroundSubtractor : public BackgroundSubtractorMOG2
+{
+	public:
+		MyBackgroundSubtractor() : BackgroundSubtractorMOG2(100,16,true) 	// Originally hist=10, thres=16
+		{
+			fTau = 0.8;	// Not shadow if darker than background*fTau (?)
+		}
+
+};
+
 
 void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 {
@@ -204,7 +214,8 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 	namedWindow("FORE", CV_WINDOW_AUTOSIZE);
 	namedWindow("RES", CV_WINDOW_AUTOSIZE);
 
-	BackgroundSubtractorMOG2 *backgroundSubtractor = new BackgroundSubtractorMOG2(100,50,false);	// Originally hist=10, thres=16
+	MyBackgroundSubtractor *backgroundSubtractor = new MyBackgroundSubtractor();
+
     std::vector<std::vector<cv::Point> > contours;
 
 	Mat openKernel = getStructuringElement(MORPH_ELLIPSE, Size(10,10));
@@ -212,17 +223,19 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 	bool finish = false;
 	while (!finish && camProxy->CaptureImage(0,src))
 	{
-		cv::blur(*src,*blurredSrc,cv::Size(10,10));
+		//cv::blur(*src,*blurredSrc,cv::Size(10,10));
+		src->copyTo(*blurredSrc);
+
 		backgroundSubtractor->operator()(*blurredSrc,*foregroundFrame);
-		morphologyEx(*foregroundFrame,*foregroundFrame,MORPH_OPEN,openKernel,Point(-1,-1),1);
-//        erode(*foregroundFrame,*foregroundFrame,cv::Mat());
-//        dilate(*foregroundFrame,*foregroundFrame,cv::Mat());
+		//morphologyEx(*foregroundFrame,*foregroundFrame,MORPH_OPEN,openKernel,Point(-1,-1),1);
+        erode(*foregroundFrame,*foregroundFrame,cv::Mat());
+        dilate(*foregroundFrame,*foregroundFrame,cv::Mat());
         findContours(*foregroundFrame,contours,CV_RETR_EXTERNAL,CV_CHAIN_APPROX_NONE);
 
         drawContours(*src,contours,-1,cv::Scalar(0,0,255),2);
 		imshow("SRC",*src);
 
-		if (contours.size()>0)
+/*		if (contours.size()>0)
 		{
 			int colorIncrement = 255 / contours.size();
 			for(int contourIdx=0; contourIdx<contours.size(); contourIdx++)
@@ -230,7 +243,7 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 				unsigned char color = (contourIdx+1)*colorIncrement;
 				drawContourAsPolygon(foregroundFrame, contours[contourIdx], Scalar(color));
 			}
-		}
+		} */
 
 
         imshow("FORE",*foregroundFrame);
