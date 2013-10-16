@@ -27,6 +27,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cvblob", "cvblob\cvblob.vcx
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VideoPolygonDrawer", "VideoPolygonDrawer\VideoPolygonDrawer.vcxproj", "{92C427D1-F37A-4E72-BD8B-DD4A226367C6}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libVehicleCounter", "libVehicleCounter\libVehicleCounter.vcxproj", "{8A14DA4F-B903-4DC2-B151-6A038C6C298D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -85,6 +87,10 @@ Global
 		{92C427D1-F37A-4E72-BD8B-DD4A226367C6}.Debug|Win32.Build.0 = Debug|Win32
 		{92C427D1-F37A-4E72-BD8B-DD4A226367C6}.Release|Win32.ActiveCfg = Release|Win32
 		{92C427D1-F37A-4E72-BD8B-DD4A226367C6}.Release|Win32.Build.0 = Release|Win32
+		{8A14DA4F-B903-4DC2-B151-6A038C6C298D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{8A14DA4F-B903-4DC2-B151-6A038C6C298D}.Debug|Win32.Build.0 = Debug|Win32
+		{8A14DA4F-B903-4DC2-B151-6A038C6C298D}.Release|Win32.ActiveCfg = Release|Win32
+		{8A14DA4F-B903-4DC2-B151-6A038C6C298D}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
