@@ -17,6 +17,8 @@ class MyConfigManager
 
 		videoInputFileOverride = reader->getBoolValue("input","videoInputFileOverride");
 		videoInputFilename = reader->getStringValue("input","videoInputFilename");
+		areaInputFilename = reader->getStringValue("input","areaInputFilename");
+
 		return true;
 	}
 
@@ -31,6 +33,8 @@ public:
 	std::string lutFile;
 	bool videoInputFileOverride;
 	std::string videoInputFilename;
+
+	std::string areaInputFilename;
 };
 
 #endif

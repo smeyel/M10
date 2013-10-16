@@ -27,6 +27,8 @@
 
 #include "cvblobwrapper.h"
 
+#include "area.h"
+
 using namespace cv;
 using namespace LogConfigTime;
 using namespace smeyel;
@@ -196,10 +198,12 @@ class MyBackgroundSubtractor : public BackgroundSubtractorMOG2
 
 };
 
-
 void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 {
 	init_defaults(overrideConfigFileName);
+
+	std::vector<Area> areas;
+	Area::loadAreaList(configmanager.areaInputFilename.c_str(), &areas);
 
 	CvBlobWrapper *cvblob = new CvBlobWrapper();
 
@@ -228,13 +232,17 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 
 		backgroundSubtractor->operator()(*blurredSrc,*foregroundFrame);
 
-
 		morphologyEx(*foregroundFrame,*foregroundFrame,MORPH_OPEN,openKernel,Point(-1,-1),1);
         //erode(*foregroundFrame,*foregroundFrame,cv::Mat());
         //dilate(*foregroundFrame,*foregroundFrame,cv::Mat());
         imshow("FORE",*foregroundFrame);
 
 //		findContours(*foregroundFrame,contours,CV_RETR_EXTERNAL,CV_CHAIN_APPROX_NONE);
+
+		for(unsigned int i=0; i<areas.size(); i++)
+		{
+			areas[i].draw(src,Scalar(0,255,0),false);
+		}
 
 //        drawContours(*src,contours,-1,cv::Scalar(0,0,255),2);
 		imshow("SRC",*src);

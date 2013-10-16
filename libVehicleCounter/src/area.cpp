@@ -1,5 +1,7 @@
 #include <iostream>	// for standard I/O
 
+#include<opencv2/opencv.hpp>
+
 #include "area.h"
 
 void Area::add(Point p)
@@ -23,8 +25,23 @@ void Area::draw(Mat *img, Scalar color, bool fill)
 	}
 	else
 	{
-		polylines(*img, &pts,&npts, 1, true, Scalar(0,255,0), 3);
+		polylines(*img, &pts,&npts, 1, true, color, 3);
 	}
+
+	// find rightmost point to show ID beside it
+	int rightmostIdx = 0;
+	for(int i=1; i<points.size(); i++)
+	{
+		if (points[i].x > points[rightmostIdx].x)
+		{
+			rightmostIdx = i;
+		}
+	}
+	ostringstream oss;
+	oss << id;
+	putText(*img, oss.str().c_str(), Point(points[rightmostIdx].x+5, points[rightmostIdx].y), CV_FONT_HERSHEY_SIMPLEX, 0.5, color,1,8,false);
+
+
 }
 
 void Area::save(FileStorage *fs)
