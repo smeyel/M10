@@ -19,6 +19,10 @@ class MyConfigManager
 		videoInputFilename = reader->getStringValue("input","videoInputFilename");
 		areaInputFilename = reader->getStringValue("input","areaInputFilename");
 
+		showSRC = reader->getBoolValue("show","showSRC");
+		showFORE = reader->getBoolValue("show","showFORE");
+		showBACK = reader->getBoolValue("show","showBACK");
+
 		return true;
 	}
 
@@ -35,6 +39,10 @@ public:
 	std::string videoInputFilename;
 
 	std::string areaInputFilename;
+
+	bool showSRC;
+	bool showFORE;
+	bool showBACK;
 };
 
 #endif

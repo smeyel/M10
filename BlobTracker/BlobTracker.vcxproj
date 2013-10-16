@@ -110,6 +110,9 @@
     <ProjectReference Include="..\ImageProcessing\libImageFilter\libImageFilter.vcxproj">
       <Project>{7aed9fee-4243-4622-b4dd-413a157e446b}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\libClipper\libClipper.vcxproj">
+      <Project>{228da33f-c751-49b9-808c-edfc3ccce459}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\libVehicleCounter\libVehicleCounter.vcxproj">
       <Project>{8a14da4f-b903-4dc2-b151-6a038c6c298d}</Project>
     </ProjectReference>

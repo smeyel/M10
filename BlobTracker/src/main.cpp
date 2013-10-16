@@ -238,9 +238,18 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 	Mat *result = new Mat(480,640,CV_8UC3);
 	Mat *blurredSrc = new Mat(480,640,CV_8UC3);
 
-	namedWindow("SRC", CV_WINDOW_AUTOSIZE);
-	namedWindow("BACK", CV_WINDOW_AUTOSIZE);
-	namedWindow("FORE", CV_WINDOW_AUTOSIZE);
+	if (configmanager.showSRC)
+	{
+		namedWindow("SRC", CV_WINDOW_AUTOSIZE);
+	}
+	if (configmanager.showBACK)
+	{
+		namedWindow("BACK", CV_WINDOW_AUTOSIZE);
+	}
+	if (configmanager.showFORE)
+	{
+		namedWindow("FORE", CV_WINDOW_AUTOSIZE);
+	}
 	namedWindow("RES", CV_WINDOW_AUTOSIZE);
 
 	MyBackgroundSubtractor *backgroundSubtractor = new MyBackgroundSubtractor();
@@ -260,7 +269,10 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 		morphologyEx(*foregroundFrame,*foregroundFrame,MORPH_OPEN,openKernel,Point(-1,-1),1);
         //erode(*foregroundFrame,*foregroundFrame,cv::Mat());
         //dilate(*foregroundFrame,*foregroundFrame,cv::Mat());
-        imshow("FORE",*foregroundFrame);
+		if (configmanager.showFORE)
+		{
+			imshow("FORE",*foregroundFrame);
+		}
 
 //		findContours(*foregroundFrame,contours,CV_RETR_EXTERNAL,CV_CHAIN_APPROX_NONE);
 
@@ -269,25 +281,17 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 			areas[i].draw(src,Scalar(0,255,0),false);
 		}
 
-//        drawContours(*src,contours,-1,cv::Scalar(0,0,255),2);
-		imshow("SRC",*src);
-
-/*		if (contours.size()>0)
+		if (configmanager.showSRC)
 		{
-			int colorIncrement = 255 / contours.size();
-			for(int contourIdx=0; contourIdx<contours.size(); contourIdx++)
-			{
-				unsigned char color = (contourIdx+1)*colorIncrement;
-				drawContourAsPolygon(foregroundFrame, contours[contourIdx], Scalar(color));
-			}
-		} */
-
-
-//        imshow("FORE",*foregroundFrame);
+			imshow("SRC",*src);
+		}
 
 		// Just for couriosity...
-		backgroundSubtractor->getBackgroundImage(*backgroundFrame);
-        imshow("BACK",*backgroundFrame);
+		if (configmanager.showBACK)
+		{
+			backgroundSubtractor->getBackgroundImage(*backgroundFrame);
+			imshow("BACK",*backgroundFrame);
+		}
 
 		// Tracking blobs
 		src->copyTo(*result);
