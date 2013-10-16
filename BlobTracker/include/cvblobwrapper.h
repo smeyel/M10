@@ -8,16 +8,19 @@
 
 class CvBlobWrapper
 {
-	IplConvKernel* morphKernel;
+	//IplConvKernel* morphKernel;
 	cvb::CvTracks tracks;
 	CvSize imgSize;
     cvb::CvBlobs blobs;
 	unsigned int blobNumber;
 
 public:
+
+	unsigned int minBlobArea;
+	unsigned int maxBlobArea;
+
 	CvBlobWrapper();
 	~CvBlobWrapper();
-	void findBlobsInRgb(cv::Mat *src, cv::Mat *result);
 	void findWhiteBlobs(cv::Mat *src, cv::Mat *result);
 	
 	cvb::CvTracks *getCvTracks()

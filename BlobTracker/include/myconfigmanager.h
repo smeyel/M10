@@ -23,6 +23,10 @@ class MyConfigManager
 		showFORE = reader->getBoolValue("show","showFORE");
 		showBACK = reader->getBoolValue("show","showBACK");
 
+		minBlobArea = reader->getIntValue("blob","minBlobArea");
+		maxBlobArea = reader->getIntValue("blob","maxBlobArea");
+
+
 		return true;
 	}
 
@@ -43,6 +47,9 @@ public:
 	bool showSRC;
 	bool showFORE;
 	bool showBACK;
+
+	unsigned int minBlobArea;
+	unsigned int maxBlobArea;
 };
 
 #endif

@@ -98,82 +98,6 @@ void init_defaults(const char *overrideConfigFileName = NULL)
 	src = new Mat(480,640,CV_8UC3);
 }
 
-void test_BackgroundSubtractor(const char *overrideConfigFileName = NULL)
-{
-	init_defaults(overrideConfigFileName);
-
-	namedWindow("SRC", CV_WINDOW_AUTOSIZE);
-	namedWindow("BACK", CV_WINDOW_AUTOSIZE);
-	namedWindow("FORE", CV_WINDOW_AUTOSIZE);
-
-	src = new Mat(480,640,CV_8UC3);
-	Mat *backgroundFrame = new Mat(480,640,CV_8UC1);
-	Mat *foregroundFrame = new Mat(480,640,CV_8UC1);
-
-    BackgroundSubtractorMOG2 *backgroundSubtractor = new BackgroundSubtractorMOG2(10,16,false);
- 
-    std::vector<std::vector<cv::Point> > contours;
-
-	bool finished = false;
-	while (!finished)
-	{
-		if (!camProxy->CaptureImage(0,src))
-		{
-			finished=true;
-			break;
-		}
-
-		backgroundSubtractor->operator()(*src,*foregroundFrame);
-		backgroundSubtractor->getBackgroundImage(*backgroundFrame);
-        erode(*foregroundFrame,*foregroundFrame,cv::Mat());
-        dilate(*foregroundFrame,*foregroundFrame,cv::Mat());
-        findContours(*foregroundFrame,contours,CV_RETR_EXTERNAL,CV_CHAIN_APPROX_NONE);
-        drawContours(*src,contours,-1,cv::Scalar(0,0,255),2);
-        imshow("SRC",*src);
-        imshow("BACK",*backgroundFrame);
-        imshow("FORE",*foregroundFrame);
-
-		char ch = waitKey(25);
-		switch (ch)
-		{
-		case 27:
-			finished=true;
-			break;
-		}
-	}
-}
-
-void test_CvBlobLib(const char *overrideConfigFileName = NULL)
-{
-	init_defaults(overrideConfigFileName);
-
-	CvBlobWrapper *cvblob = new CvBlobWrapper();
-
-	src = new Mat(480,640,CV_8UC3);
-	Mat *result = new Mat(480,640,CV_8UC3);
-
-	namedWindow("SRC", CV_WINDOW_AUTOSIZE);
-	namedWindow("RES", CV_WINDOW_AUTOSIZE);
-
-	bool finish = false;
-	while (!finish && camProxy->CaptureImage(0,src))
-	{
-		cvblob->findBlobsInRgb(src,result);
-
-		imshow("SRC", *src);
-		imshow("RES", *result);
-
-		char k = cvWaitKey(25);
-		switch (k)
-		{
-			case 27:
-				finish = true;
-			break;
-			break;
-		}
-	}
-}
-
 void drawContourAsPolygon(Mat *img, vector<Point> contour, Scalar color)
 {
 	// create a pointer to the data as an array of points (via a conversion to 
@@ -193,7 +117,7 @@ class MyBackgroundSubtractor : public BackgroundSubtractorMOG2
 	public:
 		MyBackgroundSubtractor() : BackgroundSubtractorMOG2(100,16,true) 	// Originally hist=10, thres=16
 		{
-			fTau = 0.8F;	// Not shadow if darker than background*fTau (?)
+			fTau = 0.6F;	// Not shadow if darker than background*fTau (?)
 		}
 };
 
@@ -231,6 +155,8 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 	vector<cvb::CvTracks> currentTrackList;
 
 	CvBlobWrapper *cvblob = new CvBlobWrapper();
+	cvblob->minBlobArea = configmanager.minBlobArea;
+	cvblob->maxBlobArea = configmanager.maxBlobArea;
 
 	src = new Mat(480,640,CV_8UC3);
 	Mat *backgroundFrame = new Mat(480,640,CV_8UC1);
@@ -261,20 +187,19 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 	bool finish = false;
 	while (!finish && camProxy->CaptureImage(0,src))
 	{
-		//cv::blur(*src,*blurredSrc,cv::Size(10,10));
+		cv::blur(*src,*blurredSrc,cv::Size(10,10));
 		src->copyTo(*blurredSrc);
 
 		backgroundSubtractor->operator()(*blurredSrc,*foregroundFrame);
 
 		morphologyEx(*foregroundFrame,*foregroundFrame,MORPH_OPEN,openKernel,Point(-1,-1),1);
-        //erode(*foregroundFrame,*foregroundFrame,cv::Mat());
-        //dilate(*foregroundFrame,*foregroundFrame,cv::Mat());
+
+		morphologyEx(*foregroundFrame,*foregroundFrame,MORPH_CLOSE,openKernel,Point(-1,-1),1);
+
 		if (configmanager.showFORE)
 		{
 			imshow("FORE",*foregroundFrame);
 		}
-
-//		findContours(*foregroundFrame,contours,CV_RETR_EXTERNAL,CV_CHAIN_APPROX_NONE);
 
 		for(unsigned int i=0; i<areas.size(); i++)
 		{
@@ -286,9 +211,9 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 			imshow("SRC",*src);
 		}
 
-		// Just for couriosity...
 		if (configmanager.showBACK)
 		{
+			// Just for couriosity...
 			backgroundSubtractor->getBackgroundImage(*backgroundFrame);
 			imshow("BACK",*backgroundFrame);
 		}
@@ -304,9 +229,13 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 		char k = cvWaitKey(25);
 		switch (k)
 		{
-			case 27:
-				finish = true;
+		case -1:	// No keypress
 			break;
+		case 27:
+			finish = true;
+			break;
+		default:
+			cout << "Press ESC to exit." << endl;
 			break;
 		}
 	}
@@ -314,7 +243,5 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 
 int main(int argc, char *argv[], char *window_name)
 {
-	//test_BackgroundSubtractor();
-	//test_CvBlobLib();
 	test_BlobOnForeground();
 }
