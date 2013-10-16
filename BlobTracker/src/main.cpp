@@ -193,10 +193,34 @@ class MyBackgroundSubtractor : public BackgroundSubtractorMOG2
 	public:
 		MyBackgroundSubtractor() : BackgroundSubtractorMOG2(100,16,true) 	// Originally hist=10, thres=16
 		{
-			fTau = 0.8;	// Not shadow if darker than background*fTau (?)
+			fTau = 0.8F;	// Not shadow if darker than background*fTau (?)
 		}
 
 };
+
+bool isIntersecting(cvb::CvTrack *track, Area *area)
+{
+	cout << "Checking intersection..." << endl;
+	return false;
+}
+
+void processTracks(cvb::CvTracks *tracks, std::vector<Area> *areas)
+{
+	cout << "Current CvTracks size: " << tracks->size() << endl;
+
+	cvb::CvTracks::const_iterator it;
+	for (it = tracks->begin(); it != tracks->end(); ++it)
+	{
+		for(unsigned int areaIdx=0; areaIdx<areas->size(); areaIdx++)
+		{
+			if (isIntersecting(it->second, &(*areas)[areaIdx]))
+			{
+				cout << (it->second->inactive ? "Inactive " : "Active ");
+				cout << "Track ID " << it->second->id << " intersects with Area ID " << (*areas)[areaIdx].id << endl;
+			}
+		}
+	}
+}
 
 void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 {
@@ -204,6 +228,8 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 
 	std::vector<Area> areas;
 	Area::loadAreaList(configmanager.areaInputFilename.c_str(), &areas);
+
+	vector<cvb::CvTracks> currentTrackList;
 
 	CvBlobWrapper *cvblob = new CvBlobWrapper();
 
@@ -267,6 +293,9 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 		// Tracking blobs
 		src->copyTo(*result);
 		cvblob->findWhiteBlobs(foregroundFrame,result);
+
+		processTracks(cvblob->getCvTracks(),&areas);
+
 		imshow("RES", *result);
 
 		char k = cvWaitKey(25);

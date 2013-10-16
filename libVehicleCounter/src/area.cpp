@@ -30,7 +30,7 @@ void Area::draw(Mat *img, Scalar color, bool fill)
 
 	// find rightmost point to show ID beside it
 	int rightmostIdx = 0;
-	for(int i=1; i<points.size(); i++)
+	for(unsigned int i=1; i<points.size(); i++)
 	{
 		if (points[i].x > points[rightmostIdx].x)
 		{
