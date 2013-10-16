@@ -99,12 +99,9 @@ public:
 	{
 		ostringstream oss;
 		oss << id;
-		*fs << "area" << "{"	// start mapping with name "area"
-			<< "id" << oss.str();
-		oss.clear();
-		oss << points.size();
-		*fs << "length" << oss.str()
-			<< "points" << "[";	// start sequence with name "points"
+		*fs << "{";	// start mapping with name "area"
+		*fs	<< "id" << id;//oss.str();
+		*fs	<< "points" << "[";	// start sequence with name "points"
 		for(unsigned int idx=0; idx<points.size(); idx++)
 		{
 			*fs << points[idx];
@@ -113,12 +110,11 @@ public:
 			<< "}";	// finish mapping "area"
 	}
 
-	/*void load(FileStorage *fs)
+	void load(FileNode *node)
 	{
-		unsigned int len;
-		(*fs)["id"] >> id;
-		(*fs)["length"] >> len;
-		FileNode pointFileNodes = (*fs)["points"];
+		(*node)["id"] >> id;
+
+		FileNode pointFileNodes = (*node)["points"];
 		FileNodeIterator it = pointFileNodes.begin();
 		FileNodeIterator it_end = pointFileNodes.end();
 
@@ -126,15 +122,16 @@ public:
 		for( ; it != it_end; ++it)
 		{
 			Point p;
-			p.x = (int)(*it)["x"];
-			p.y = (int)(*it)["y"];
+			(*it)[0] >> p.x;
+			(*it)[1] >> p.y;
 			points.push_back(p);
 		}
-	}*/
+
+		cout << "Area " << id << " saved." << endl;
+	}
 
 	static void saveAreaList(const char *filename, vector<Area> areas)
 	{
-		//TO WRITE
 		FileStorage fs(filename,FileStorage::WRITE);
 
 		fs << "arealist" << "[";
@@ -146,20 +143,27 @@ public:
 		fs.release();
 	}
 
-/*	static void loadAreaList(const char *filename, vector<Area> *areas)
+	static void loadAreaList(const char *filename, vector<Area> *areas)
 	{
-		//TO READ
-		vector<Keypoint> myKpVec;
+		areas->clear();
 		FileStorage fs(filename,FileStorage::READ);
 		ostringstream oss;
-		Keypoint aKeypoint;
-		for(size_t i;i<myKpVec.size();<++i) {
-			oss << i;
-			fs[oss.str()] >> aKeypoint;
-			myKpVec.push_back(aKeypoint);
+
+		FileNode areaFileNodes = fs["arealist"];
+		cout << "Loading arealist (size=" << areaFileNodes.size() << ")" << endl;
+
+		FileNodeIterator it = areaFileNodes.begin();
+		FileNodeIterator it_end = areaFileNodes.end();
+
+		for( ; it != it_end; ++it)
+		{
+			Area currentArea;
+			currentArea.load(&(*it));
+			areas->push_back(currentArea);
 		}
+
 		fs.release();
-	} */
+	}
 };
 
 int main(int argc, char *argv[], char *window_name)
@@ -229,17 +233,25 @@ int main(int argc, char *argv[], char *window_name)
 				currentArea.id++;
 				cout << "Saved and started new" << endl;
 				break;
+			case 'l':
+				Area::loadAreaList(configmanager.areaOutputFilename.c_str(), &areas);
+				break;
+			case 'w':
+				Area::saveAreaList(configmanager.areaOutputFilename.c_str(), areas);
+				break;
 			default:
 				cout << "Esc:	exit program" << endl
+					<< "--- video control functions" << endl
 					<< "f:	freeze" << endl
 					<< "r:	run" << endl
+					<< "--- area edit functions" << endl
 					<< "c:	clear current area" << endl
 					<< "p:	add last click point" << endl
-					<< "s:	save current area and start new one" << endl;
+					<< "s:	save current area and start new one" << endl
+					<< "--- file operations" << endl
+					<< "w:	write areas into file" << endl
+					<< "l:	load areas from file" << endl;
+				break;
 		}
 	}
-
-	Area::saveAreaList(configmanager.areaOutputFilename.c_str(), areas);
-
-	// TODO save areas!
 }
