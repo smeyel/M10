@@ -29,6 +29,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VideoPolygonDrawer", "Video
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libVehicleCounter", "libVehicleCounter\libVehicleCounter.vcxproj", "{8A14DA4F-B903-4DC2-B151-6A038C6C298D}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libClipper", "libClipper\libClipper.vcxproj", "{228DA33F-C751-49B9-808C-EDFC3CCCE459}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -91,6 +93,10 @@ Global
 		{8A14DA4F-B903-4DC2-B151-6A038C6C298D}.Debug|Win32.Build.0 = Debug|Win32
 		{8A14DA4F-B903-4DC2-B151-6A038C6C298D}.Release|Win32.ActiveCfg = Release|Win32
 		{8A14DA4F-B903-4DC2-B151-6A038C6C298D}.Release|Win32.Build.0 = Release|Win32
+		{228DA33F-C751-49B9-808C-EDFC3CCCE459}.Debug|Win32.ActiveCfg = Debug|Win32
+		{228DA33F-C751-49B9-808C-EDFC3CCCE459}.Debug|Win32.Build.0 = Debug|Win32
+		{228DA33F-C751-49B9-808C-EDFC3CCCE459}.Release|Win32.ActiveCfg = Release|Win32
+		{228DA33F-C751-49B9-808C-EDFC3CCCE459}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

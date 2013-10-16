@@ -1,6 +1,7 @@
 #include <iostream>	// for standard I/O
 
 #include<opencv2/opencv.hpp>
+#include<clipper.hpp>
 
 #include "area.h"
 
@@ -112,4 +113,51 @@ void Area::loadAreaList(const char *filename, vector<Area> *areas)
 	}
 
 	fs.release();
+}
+
+
+/*double PolygonArea(Point *polygon,int N)
+{
+	// Written by Paul Bourke
+	// http://paulbourke.net/geometry/polygonmesh/source1.c
+
+   int i,j;
+   double area = 0;
+
+   for (i=0;i<N;i++) {
+      j = (i + 1) % N;
+      area += polygon[i].x * polygon[j].y;
+      area -= polygon[i].y * polygon[j].x;
+   }
+
+   area /= 2;
+   return(area < 0 ? -area : area);
+}*/
+
+
+bool Area::isRectangleIntersecting(Rect rect)
+{
+	// Use the Clipper library
+	ClipperLib::Clipper c;
+
+	//create clipper polygons from your points
+	ClipperLib::Polygon rectPolygon;
+	rectPolygon.push_back(ClipperLib::IntPoint( rect.x, rect.y ));
+	rectPolygon.push_back(ClipperLib::IntPoint( rect.x+rect.width, rect.y ));
+	rectPolygon.push_back(ClipperLib::IntPoint( rect.x+rect.width, rect.y+rect.height ));
+	rectPolygon.push_back(ClipperLib::IntPoint( rect.x, rect.y+rect.height ));
+
+	ClipperLib::Polygon areaPolygon;
+	for(int i=0; i<points.size(); i++)
+	{
+		areaPolygon.push_back(ClipperLib::IntPoint( points[i].x, points[i].y ));
+	}
+	c.AddPolygon(areaPolygon, ClipperLib::PolyType::ptSubject);
+	c.AddPolygon(rectPolygon, ClipperLib::PolyType::ptClip);
+
+	ClipperLib::PolyTree solution;
+	c.Execute(ClipperLib::ClipType::ctIntersection, solution, ClipperLib::PolyFillType::pftNonZero, ClipperLib::PolyFillType::pftNonZero);
+
+	bool isIntersecting = (solution.Childs.size() > 0);	// Is this enough?
+	return isIntersecting;
 }

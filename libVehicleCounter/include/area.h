@@ -21,6 +21,8 @@ public:
 
 	static void saveAreaList(const char *filename, vector<Area> areas);
 	static void loadAreaList(const char *filename, vector<Area> *areas);
+
+	bool isRectangleIntersecting(Rect rect);
 };
 
 #endif

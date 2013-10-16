@@ -195,18 +195,17 @@ class MyBackgroundSubtractor : public BackgroundSubtractorMOG2
 		{
 			fTau = 0.8F;	// Not shadow if darker than background*fTau (?)
 		}
-
 };
 
 bool isIntersecting(cvb::CvTrack *track, Area *area)
 {
-	cout << "Checking intersection..." << endl;
-	return false;
+	Rect rect(track->minx, track->miny, track->maxx - track->minx, track->maxy - track->miny);
+	return area->isRectangleIntersecting(rect);
 }
 
 void processTracks(cvb::CvTracks *tracks, std::vector<Area> *areas)
 {
-	cout << "Current CvTracks size: " << tracks->size() << endl;
+	cout << "#CvTracks: " << tracks->size() << endl;
 
 	cvb::CvTracks::const_iterator it;
 	for (it = tracks->begin(); it != tracks->end(); ++it)
@@ -215,8 +214,8 @@ void processTracks(cvb::CvTracks *tracks, std::vector<Area> *areas)
 		{
 			if (isIntersecting(it->second, &(*areas)[areaIdx]))
 			{
-				cout << (it->second->inactive ? "Inactive " : "Active ");
-				cout << "Track ID " << it->second->id << " intersects with Area ID " << (*areas)[areaIdx].id << endl;
+				cout << (it->second->inactive ? "inactive " : "  active ");
+				cout << "CAR " << it->second->id << " in AREA " << (*areas)[areaIdx].id << endl;
 			}
 		}
 	}
