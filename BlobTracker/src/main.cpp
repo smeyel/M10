@@ -218,7 +218,7 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 
     std::vector<std::vector<cv::Point> > contours;
 
-	Mat openKernel = getStructuringElement(MORPH_ELLIPSE, Size(10,10));
+	Mat openKernel = getStructuringElement(MORPH_ELLIPSE, Size(3,3));
 
 	bool finish = false;
 	while (!finish && camProxy->CaptureImage(0,src))
@@ -227,12 +227,16 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 		src->copyTo(*blurredSrc);
 
 		backgroundSubtractor->operator()(*blurredSrc,*foregroundFrame);
-		//morphologyEx(*foregroundFrame,*foregroundFrame,MORPH_OPEN,openKernel,Point(-1,-1),1);
-        erode(*foregroundFrame,*foregroundFrame,cv::Mat());
-        dilate(*foregroundFrame,*foregroundFrame,cv::Mat());
-        findContours(*foregroundFrame,contours,CV_RETR_EXTERNAL,CV_CHAIN_APPROX_NONE);
 
-        drawContours(*src,contours,-1,cv::Scalar(0,0,255),2);
+
+		morphologyEx(*foregroundFrame,*foregroundFrame,MORPH_OPEN,openKernel,Point(-1,-1),1);
+        //erode(*foregroundFrame,*foregroundFrame,cv::Mat());
+        //dilate(*foregroundFrame,*foregroundFrame,cv::Mat());
+        imshow("FORE",*foregroundFrame);
+
+//		findContours(*foregroundFrame,contours,CV_RETR_EXTERNAL,CV_CHAIN_APPROX_NONE);
+
+//        drawContours(*src,contours,-1,cv::Scalar(0,0,255),2);
 		imshow("SRC",*src);
 
 /*		if (contours.size()>0)
@@ -246,7 +250,7 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 		} */
 
 
-        imshow("FORE",*foregroundFrame);
+//        imshow("FORE",*foregroundFrame);
 
 		// Just for couriosity...
 		backgroundSubtractor->getBackgroundImage(*backgroundFrame);
