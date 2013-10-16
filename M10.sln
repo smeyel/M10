@@ -25,6 +25,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BlobTracker", "BlobTracker\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cvblob", "cvblob\cvblob.vcxproj", "{03A49657-2C8C-4150-9D73-F2F5ED2617D1}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VideoPolygonDrawer", "VideoPolygonDrawer\VideoPolygonDrawer.vcxproj", "{92C427D1-F37A-4E72-BD8B-DD4A226367C6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -79,6 +81,10 @@ Global
 		{03A49657-2C8C-4150-9D73-F2F5ED2617D1}.Debug|Win32.Build.0 = Debug|Win32
 		{03A49657-2C8C-4150-9D73-F2F5ED2617D1}.Release|Win32.ActiveCfg = Release|Win32
 		{03A49657-2C8C-4150-9D73-F2F5ED2617D1}.Release|Win32.Build.0 = Release|Win32
+		{92C427D1-F37A-4E72-BD8B-DD4A226367C6}.Debug|Win32.ActiveCfg = Debug|Win32
+		{92C427D1-F37A-4E72-BD8B-DD4A226367C6}.Debug|Win32.Build.0 = Debug|Win32
+		{92C427D1-F37A-4E72-BD8B-DD4A226367C6}.Release|Win32.ActiveCfg = Release|Win32
+		{92C427D1-F37A-4E72-BD8B-DD4A226367C6}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
