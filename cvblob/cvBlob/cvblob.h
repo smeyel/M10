@@ -548,8 +548,7 @@ extern "C" {
   /// \param thActive If a track becomes inactive but it has been active less than thActive frames, the track will be deleted.
   /// \see CvBlobs
   /// \see Tracks
-typedef void (*DeletingTrackHandler)(CvTrack *track);
-  void cvUpdateTracks(CvBlobs const &b, CvTracks &t, const double thDistance, const unsigned int thInactive, const unsigned int thActive=0, DeletingTrackHandler deletingTrackHandler = NULL);
+  void cvUpdateTracks(CvBlobs const &b, CvTracks &t, const double thDistance, const unsigned int thInactive, const unsigned int thActive=0);
 
 #define CV_TRACK_RENDER_ID            0x0001 ///< Print the ID of each track in the image. \see cvRenderTracks
 #define CV_TRACK_RENDER_BOUNDING_BOX  0x0002 ///< Draw bounding box of each track in the image. \see cvRenderTracks

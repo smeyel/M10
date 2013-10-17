@@ -160,7 +160,7 @@ namespace cvb
 	// Kri: Made global
 	CvID maxTrackID = 0;
 
-	void cvUpdateTracks(CvBlobs const &blobs, CvTracks &tracks, const double thDistance, const unsigned int thInactive, const unsigned int thActive, DeletingTrackHandler deletingTrackHandler)
+	void cvUpdateTracks(CvBlobs const &blobs, CvTracks &tracks, const double thDistance, const unsigned int thInactive, const unsigned int thActive)
 	{
 		CV_FUNCNAME("cvUpdateTracks");
 		__CV_BEGIN__;
@@ -331,11 +331,6 @@ namespace cvb
 							||	((jt->second->inactive) && (thActive) && (jt->second->active<thActive)))
 								// thActive is set and the track has not been active for sufficient time before getting inactive
 						{
-							// Remove track
-							if (deletingTrackHandler != NULL)
-							{
-								deletingTrackHandler(jt->second);
-							}
 							delete jt->second;
 							tracks.erase(jt++);
 						}

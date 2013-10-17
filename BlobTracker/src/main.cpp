@@ -127,9 +127,15 @@ bool isIntersecting(cvb::CvTrack *track, Area *area)
 	return area->isRectangleIntersecting(rect);
 }
 
+/** For every timeframe: TrackID, location, visual properties (size etc for clustering), intersecting detection Areas
+*/
+/*class Detection
+{
+};*/
+
 void processTracks(cvb::CvTracks *tracks, std::vector<Area> *areas, Mat *verboseImg = NULL)
 {
-	cout << "#CvTracks: " << tracks->size() << endl;
+//	cout << "#CvTracks: " << tracks->size() << endl;
 
 	cvb::CvTracks::const_iterator it;
 	for (it = tracks->begin(); it != tracks->end(); ++it)

@@ -22,12 +22,6 @@ CvBlobWrapper::~CvBlobWrapper()
 	cvReleaseBlobs(blobs);
 }
 
-void deletingTrackHandler(CvTrack *track)
-{
-	std::cout << "DELETE EVENT, track ID=" << track->id << std::endl;
-}
-
-
 void CvBlobWrapper::findWhiteBlobs(Mat *src, Mat *result)
 {
 	IplImage imgSrc = *src;
@@ -38,7 +32,7 @@ void CvBlobWrapper::findWhiteBlobs(Mat *src, Mat *result)
     unsigned int labelNum = cvLabel(&imgSrc, labelImg, blobs);
     cvb::cvFilterByArea(blobs, minBlobArea, maxBlobArea);
     cvb::cvRenderBlobs(labelImg, blobs, &imgSrc, &imgRes, CV_BLOB_RENDER_BOUNDING_BOX);
-    cvb::cvUpdateTracks(blobs, tracks, 10, 5, 0, deletingTrackHandler);	// last 2 params: thInactive (200.), thActive (5)
+    cvb::cvUpdateTracks(blobs, tracks, 200., 5, 2);	// last 2 params: thDistance (200.), thInactive (5), thActive (0)
     cvb::cvRenderTracks(tracks, &imgSrc, &imgRes, CV_TRACK_RENDER_ID|CV_TRACK_RENDER_BOUNDING_BOX);
 
     cvReleaseImage(&labelImg);
