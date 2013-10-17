@@ -187,22 +187,43 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 
 	Mat openKernel = getStructuringElement(MORPH_ELLIPSE, Size(3,3));
 
-	bool finish = false;
-	while (!finish && camProxy->CaptureImage(0,src))
+	enum stateEnum
 	{
-		for(unsigned int i=0; i<backgroundAreas.size(); i++)
+		run,
+		pause,
+		finished
+	} state = run;
+	while (state != finished)
+	{
+		if (state == run)
 		{
-			backgroundAreas[i].draw(src,Scalar(30,30,30),true);
+			if (!camProxy->CaptureImage(0,src))
+			{
+				// No more frames
+				state = finished;
+				break;
+			}
+
+			for(unsigned int i=0; i<backgroundAreas.size(); i++)
+			{
+				backgroundAreas[i].draw(src,Scalar(30,30,30),true);
+			}
+
+			cv::blur(*src,*blurredSrc,cv::Size(10,10));
+			src->copyTo(*blurredSrc);
+
+			backgroundSubtractor->operator()(*blurredSrc,*foregroundFrame);
+
+			morphologyEx(*foregroundFrame,*foregroundFrame,MORPH_OPEN,openKernel,Point(-1,-1),1);
+
+			morphologyEx(*foregroundFrame,*foregroundFrame,MORPH_CLOSE,openKernel,Point(-1,-1),1);
+
+			// Tracking blobs
+			src->copyTo(*result);
+			cvblob->findWhiteBlobs(foregroundFrame,result);
+
+			processTracks(cvblob->getCvTracks(),&areas);
 		}
-
-		cv::blur(*src,*blurredSrc,cv::Size(10,10));
-		src->copyTo(*blurredSrc);
-
-		backgroundSubtractor->operator()(*blurredSrc,*foregroundFrame);
-
-		morphologyEx(*foregroundFrame,*foregroundFrame,MORPH_OPEN,openKernel,Point(-1,-1),1);
-
-		morphologyEx(*foregroundFrame,*foregroundFrame,MORPH_CLOSE,openKernel,Point(-1,-1),1);
 
 		if (configmanager.showFORE)
 		{
@@ -226,12 +247,6 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 			imshow("BACK",*backgroundFrame);
 		}
 
-		// Tracking blobs
-		src->copyTo(*result);
-		cvblob->findWhiteBlobs(foregroundFrame,result);
-
-		processTracks(cvblob->getCvTracks(),&areas);
-
 		imshow("RES", *result);
 
 		char k = cvWaitKey(25);
@@ -240,7 +255,13 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 		case -1:	// No keypress
 			break;
 		case 27:
-			finish = true;
+			state = finished;
+			break;
+		case 'r':
+			state = run;
+			break;
+		case 'p':
+			state = pause;
 			break;
 		default:
 			cout << "Press ESC to exit." << endl;
