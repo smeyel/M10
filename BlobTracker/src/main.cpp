@@ -129,9 +129,48 @@ bool isIntersecting(cvb::CvTrack *track, Area *area)
 
 /** For every timeframe: TrackID, location, visual properties (size etc for clustering), intersecting detection Areas
 */
-/*class Detection
+class Detection
 {
-};*/
+public:
+	unsigned int trackID;	// May not reference CvTrack, that is removed after getting useless!
+
+	vector<unsigned int> areaHits;
+
+};
+
+std::ostream& operator<<(std::ostream& output, Detection &detection)
+{
+	output << "Detections for trackID=" << detection.trackID << ":" << endl << "\t";
+	for(vector<unsigned int>::iterator it=detection.areaHits.begin(); it!=detection.areaHits.end(); it++)
+	{
+		output << *it << " ";
+	}
+	output << endl;
+	return output;
+}
+
+
+map<unsigned int,Detection*> detections;
+
+void registerAreaHit(unsigned int trackId, unsigned int areaIdx)
+{
+	if (detections.count(trackId) == 0)
+	{
+		Detection *detection = new Detection();
+		detection->trackID = trackId;
+		detections.insert(std::make_pair(trackId, detection));
+	}
+	detections[trackId]->areaHits.push_back(areaIdx);
+}
+
+void showDetections()
+{
+	cout << "List of detections:" << endl;
+	for(map<unsigned int,Detection*>::iterator it = detections.begin(); it != detections.end(); it++)
+	{
+		cout << *(it->second);
+	}
+}
 
 void processTracks(cvb::CvTracks *tracks, std::vector<Area> *areas, Mat *verboseImg = NULL)
 {
@@ -146,6 +185,8 @@ void processTracks(cvb::CvTracks *tracks, std::vector<Area> *areas, Mat *verbose
 			{
 				cout << (it->second->inactive ? "inactive " : "  active ");
 				cout << "CAR " << it->second->id << " in AREA " << (*areas)[areaIdx].id << endl;
+
+				registerAreaHit(it->second->id, areaIdx);
 			}
 		}
 	}
@@ -268,6 +309,9 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 			break;
 		case 'p':
 			state = pause;
+			break;
+		case 's':
+			showDetections();
 			break;
 		default:
 			cout << "Press ESC to exit." << endl;
