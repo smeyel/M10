@@ -127,7 +127,7 @@ bool isIntersecting(cvb::CvTrack *track, Area *area)
 	return area->isRectangleIntersecting(rect);
 }
 
-void processTracks(cvb::CvTracks *tracks, std::vector<Area> *areas)
+void processTracks(cvb::CvTracks *tracks, std::vector<Area> *areas, Mat *verboseImg = NULL)
 {
 	cout << "#CvTracks: " << tracks->size() << endl;
 
@@ -150,7 +150,10 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 	init_defaults(overrideConfigFileName);
 
 	std::vector<Area> areas;
-	Area::loadAreaList(configmanager.areaInputFilename.c_str(), &areas);
+	Area::loadAreaList(configmanager.trackedAreaInputFilename.c_str(), &areas);
+
+	std::vector<Area> backgroundAreas;
+	Area::loadAreaList(configmanager.backgroundAreaInputFilename.c_str(), &backgroundAreas);
 
 	vector<cvb::CvTracks> currentTrackList;
 
@@ -187,6 +190,11 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 	bool finish = false;
 	while (!finish && camProxy->CaptureImage(0,src))
 	{
+		for(unsigned int i=0; i<backgroundAreas.size(); i++)
+		{
+			backgroundAreas[i].draw(src,Scalar(30,30,30),true);
+		}
+
 		cv::blur(*src,*blurredSrc,cv::Size(10,10));
 		src->copyTo(*blurredSrc);
 

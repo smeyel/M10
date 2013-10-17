@@ -20,6 +20,12 @@ void Area::draw(Mat *img, Scalar color, bool fill)
 	const cv::Point *pts = (const cv::Point*) Mat(points).data;
 	int npts = Mat(points).rows;
 
+	if (npts==0)
+	{
+		// Nothing to draw
+		return;
+	}
+
 	if (fill)
 	{
 		fillPoly(*img, &pts,&npts, 1, color);

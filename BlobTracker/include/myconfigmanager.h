@@ -17,7 +17,8 @@ class MyConfigManager
 
 		videoInputFileOverride = reader->getBoolValue("input","videoInputFileOverride");
 		videoInputFilename = reader->getStringValue("input","videoInputFilename");
-		areaInputFilename = reader->getStringValue("input","areaInputFilename");
+		trackedAreaInputFilename = reader->getStringValue("input","trackedAreaInputFilename");
+		backgroundAreaInputFilename = reader->getStringValue("input","backgroundAreaInputFilename");
 
 		showSRC = reader->getBoolValue("show","showSRC");
 		showFORE = reader->getBoolValue("show","showFORE");
@@ -42,7 +43,8 @@ public:
 	bool videoInputFileOverride;
 	std::string videoInputFilename;
 
-	std::string areaInputFilename;
+	std::string trackedAreaInputFilename;
+	std::string backgroundAreaInputFilename;
 
 	bool showSRC;
 	bool showFORE;
