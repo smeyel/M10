@@ -84,16 +84,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\cvblobwrapper.cpp" />
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\TrackedVehicle.cpp" />
-    <ClCompile Include="src\TrackedVehicleManager.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\cvblobwrapper.h" />
     <ClInclude Include="include\myconfigmanager.h" />
-    <ClInclude Include="include\TrackedVehicle.h" />
-    <ClInclude Include="include\TrackedVehicleManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\cvblob\cvblob.vcxproj">

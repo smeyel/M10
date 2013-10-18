@@ -47,7 +47,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>include;%(AdditionalIncludeDirectories);$(OPENCV_DIR)\include;$(SolutionDir)libClipper/include;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include;%(AdditionalIncludeDirectories);$(OPENCV_DIR)\include;$(SolutionDir)libClipper/include;$(SolutionDir)cvblob/cvBlob</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -76,11 +76,20 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\area.h" />
+    <ClInclude Include="include\cvblobwrapper.h" />
+    <ClInclude Include="include\TrackedVehicle.h" />
+    <ClInclude Include="include\TrackedVehicleManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\area.cpp" />
+    <ClCompile Include="src\cvblobwrapper.cpp" />
+    <ClCompile Include="src\TrackedVehicle.cpp" />
+    <ClCompile Include="src\TrackedVehicleManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\cvblob\cvblob.vcxproj">
+      <Project>{03a49657-2c8c-4150-9d73-f2f5ed2617d1}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\libClipper\libClipper.vcxproj">
       <Project>{228da33f-c751-49b9-808c-edfc3ccce459}</Project>
     </ProjectReference>
