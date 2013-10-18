@@ -29,6 +29,8 @@
 
 #include "area.h"
 
+#include "TrackedVehicleManager.h"
+
 using namespace cv;
 using namespace LogConfigTime;
 using namespace smeyel;
@@ -40,8 +42,8 @@ Mat *src;
 
 // Globals used by mouse event handler
 Point lastMouseClickLocation;
-unsigned int lastLutIdx;
-DefaultLutColorFilter *lutColorFilter;
+//unsigned int lastLutIdx;
+//DefaultLutColorFilter *lutColorFilter;
 
 // Mouse callback to retrieve debug information at pixel locations
 void mouse_callback(int eventtype, int x, int y, int flags, void *param)
@@ -50,23 +52,6 @@ void mouse_callback(int eventtype, int x, int y, int flags, void *param)
 	{
 		lastMouseClickLocation = Point(x,y);
 		cout << "Click location saved: " << x << ";" << y << endl;
-
-		Vec3b intensity;
-		uchar bOrig, gOrig, rOrig;
-		uchar bNew,gNew,rNew;
-		uchar colorCode;
-
-		intensity = src->at<Vec3b>(lastMouseClickLocation.y, lastMouseClickLocation.x);
-		bOrig = intensity.val[0];
-		gOrig = intensity.val[1];
-		rOrig = intensity.val[2];
-		lutColorFilter->quantizeRgb(rOrig,gOrig,bOrig,rNew,gNew,bNew);
-		colorCode = lutColorFilter->rgb2lutValue(rOrig,gOrig,bOrig);
-		cout << "Pixel data:" << endl;
-		cout << "   real RGB: " << (int)rOrig << "," << (int)gOrig << "," << (int)bOrig << endl;
-		cout << "   quantizedRGB: " << (int)rNew << "," << (int)gNew << "," << (int)bNew << endl;
-		cout << "   LUT value: (" << (int)colorCode << ") " << lutColorFilter->GetColorcodeName(colorCode) << endl;
-		lastLutIdx = lutColorFilter->rgb2idx(rOrig,gOrig,bOrig);
 	}
 }
 
@@ -121,76 +106,7 @@ class MyBackgroundSubtractor : public BackgroundSubtractorMOG2
 		}
 };
 
-bool isIntersecting(cvb::CvTrack *track, Area *area)
-{
-	Rect rect(track->minx, track->miny, track->maxx - track->minx, track->maxy - track->miny);
-	return area->isRectangleIntersecting(rect);
-}
 
-/** For every timeframe: TrackID, location, visual properties (size etc for clustering), intersecting detection Areas
-*/
-class Detection
-{
-public:
-	unsigned int trackID;	// May not reference CvTrack, that is removed after getting useless!
-
-	vector<unsigned int> areaHits;
-
-};
-
-std::ostream& operator<<(std::ostream& output, Detection &detection)
-{
-	output << "Detections for trackID=" << detection.trackID << ":" << endl << "\t";
-	for(vector<unsigned int>::iterator it=detection.areaHits.begin(); it!=detection.areaHits.end(); it++)
-	{
-		output << *it << " ";
-	}
-	output << endl;
-	return output;
-}
-
-
-map<unsigned int,Detection*> detections;
-
-void registerAreaHit(unsigned int trackId, unsigned int areaIdx)
-{
-	if (detections.count(trackId) == 0)
-	{
-		Detection *detection = new Detection();
-		detection->trackID = trackId;
-		detections.insert(std::make_pair(trackId, detection));
-	}
-	detections[trackId]->areaHits.push_back(areaIdx);
-}
-
-void showDetections()
-{
-	cout << "List of detections:" << endl;
-	for(map<unsigned int,Detection*>::iterator it = detections.begin(); it != detections.end(); it++)
-	{
-		cout << *(it->second);
-	}
-}
-
-void processTracks(cvb::CvTracks *tracks, std::vector<Area> *areas, Mat *verboseImg = NULL)
-{
-//	cout << "#CvTracks: " << tracks->size() << endl;
-
-	cvb::CvTracks::const_iterator it;
-	for (it = tracks->begin(); it != tracks->end(); ++it)
-	{
-		for(unsigned int areaIdx=0; areaIdx<areas->size(); areaIdx++)
-		{
-			if (isIntersecting(it->second, &(*areas)[areaIdx]))
-			{
-				cout << (it->second->inactive ? "inactive " : "  active ");
-				cout << "CAR " << it->second->id << " in AREA " << (*areas)[areaIdx].id << endl;
-
-				registerAreaHit(it->second->id, areaIdx);
-			}
-		}
-	}
-}
 
 void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 {
@@ -234,6 +150,9 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 
 	Mat openKernel = getStructuringElement(MORPH_ELLIPSE, Size(3,3));
 
+	TrackedVehicleManager trackedVehicleManager;
+
+	unsigned int frameIdx = 0;
 	enum stateEnum
 	{
 		run,
@@ -269,17 +188,12 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 			src->copyTo(*result);
 			cvblob->findWhiteBlobs(foregroundFrame,result);
 
-			processTracks(cvblob->getCvTracks(),&areas);
+			trackedVehicleManager.processTracks(frameIdx,cvblob->getCvTracks(),&areas);
 		}
 
 		if (configmanager.showFORE)
 		{
 			imshow("FORE",*foregroundFrame);
-		}
-
-		for(unsigned int i=0; i<areas.size(); i++)
-		{
-			areas[i].draw(src,Scalar(0,255,0),false);
 		}
 
 		if (configmanager.showSRC)
@@ -292,6 +206,11 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 			// Just for couriosity...
 			backgroundSubtractor->getBackgroundImage(*backgroundFrame);
 			imshow("BACK",*backgroundFrame);
+		}
+
+		for(unsigned int i=0; i<areas.size(); i++)
+		{
+			areas[i].draw(result,Scalar(0,255,0),false);
 		}
 
 		imshow("RES", *result);
@@ -311,12 +230,14 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 			state = pause;
 			break;
 		case 's':
-			showDetections();
+			trackedVehicleManager.showDetections();
 			break;
 		default:
 			cout << "Press ESC to exit." << endl;
 			break;
 		}
+
+		frameIdx++;
 	}
 }
 

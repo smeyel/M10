@@ -32,7 +32,7 @@ void Area::draw(Mat *img, Scalar color, bool fill)
 	}
 	else
 	{
-		polylines(*img, &pts,&npts, 1, true, color, 3);
+		polylines(*img, &pts,&npts, 1, true, color, 1);
 	}
 
 	// find rightmost point to show ID beside it
