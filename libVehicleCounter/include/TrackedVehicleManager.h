@@ -15,7 +15,7 @@ class TrackedVehicleManager
 	map<unsigned int,TrackedVehicle*> trackedVehicles;
 public:
 	TrackedVehicle *getTrackedVehicleOrCreate(unsigned int trackId);
-	void processTracks(unsigned int frameIdx, cvb::CvTracks *tracks, std::vector<Area> *areas, Mat *verboseImg = NULL);
+	void processTracks(unsigned int frameIdx, cvb::CvTracks *tracks, std::vector<Area> *areas, Mat *verboseImg = NULL, Mat *srcImage = NULL, Mat *foregroundMask = NULL);
 	void showDetections();
 };
 

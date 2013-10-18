@@ -16,13 +16,13 @@ class TrackedVehicle
 	unsigned int trackID;	// May not reference CvTrack, that is removed after getting useless!
 	vector<unsigned int> areaHits;
 
-	void registerDetection(unsigned int frameIdx, cvb::CvTrack *currentDetectingCvTrack);
+	void registerDetection(unsigned int frameIdx, cvb::CvTrack *currentDetectingCvTrack, Mat *sourceImage=NULL, Mat *foregroundMask=NULL);
 	bool isIntersecting(cvb::CvTrack *track, Area *area);
 	void checkForAreaIntersections(unsigned int frameIdx, cvb::CvTrack *currentDetectingCvTrack, std::vector<Area> *areas);
 
 public:
 	TrackedVehicle(unsigned int iTrackID);
-	void registerDetectionAndCheckForAreaIntersections(unsigned int frameIdx, cvb::CvTrack *currentDetectingCvTrack, std::vector<Area> *areas);
+	void registerDetectionAndCheckForAreaIntersections(unsigned int frameIdx, cvb::CvTrack *currentDetectingCvTrack, std::vector<Area> *areas, Mat *sourceImage=NULL, Mat *foregroundMask=NULL);
 
 	friend std::ostream& operator<<(std::ostream& output, TrackedVehicle &trackedVehicle);
 };

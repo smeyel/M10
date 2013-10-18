@@ -1,8 +1,24 @@
+#include <opencv2/highgui/highgui.hpp>  // for imwrite
+
 #include "TrackedVehicle.h"
 
-void TrackedVehicle::registerDetection(unsigned int frameIdx, cvb::CvTrack *currentDetectingCvTrack)
+void TrackedVehicle::registerDetection(unsigned int frameIdx, cvb::CvTrack *currentDetectingCvTrack, Mat *sourceImage, Mat *foregroundMask)
 {
 	// Save coordinates, image, moments etc.
+
+	Point centroid(currentDetectingCvTrack->centroid.x,currentDetectingCvTrack->centroid.y);
+	Point upperLeft(currentDetectingCvTrack->minx, currentDetectingCvTrack->miny);
+	Size size(currentDetectingCvTrack->maxx - currentDetectingCvTrack->minx, currentDetectingCvTrack->maxy - currentDetectingCvTrack->miny);
+	Rect rect(upperLeft,size);
+
+//	Mat srcImgRoI(*sourceImage,rect);
+/*	if (sourceImage)
+	{
+		cv::Mat roi = (*sourceImage)(rect);
+		imwrite("dummy.png",roi);
+	}*/
+
+
 }
 
 bool TrackedVehicle::isIntersecting(cvb::CvTrack *track, Area *area)
@@ -31,9 +47,9 @@ TrackedVehicle::TrackedVehicle(unsigned int iTrackID)
 	trackID = iTrackID;
 }
 
-void TrackedVehicle::registerDetectionAndCheckForAreaIntersections(unsigned int frameIdx, cvb::CvTrack *currentDetectingCvTrack, std::vector<Area> *areas)
+void TrackedVehicle::registerDetectionAndCheckForAreaIntersections(unsigned int frameIdx, cvb::CvTrack *currentDetectingCvTrack, std::vector<Area> *areas, Mat *sourceImage, Mat *foregroundMask)
 {
-	registerDetection(frameIdx, currentDetectingCvTrack);
+	registerDetection(frameIdx, currentDetectingCvTrack, sourceImage, foregroundMask);
 	checkForAreaIntersections(frameIdx, currentDetectingCvTrack, areas);
 }
 

@@ -188,7 +188,7 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 			src->copyTo(*result);
 			cvblob->findWhiteBlobs(foregroundFrame,result);
 
-			trackedVehicleManager.processTracks(frameIdx,cvblob->getCvTracks(),&areas);
+			trackedVehicleManager.processTracks(frameIdx,cvblob->getCvTracks(),&areas,NULL,src,foregroundFrame);
 		}
 
 		if (configmanager.showFORE)

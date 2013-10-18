@@ -10,14 +10,14 @@ TrackedVehicle *TrackedVehicleManager::getTrackedVehicleOrCreate(unsigned int tr
 	return trackedVehicles[trackId];
 }
 
-void TrackedVehicleManager::processTracks(unsigned int frameIdx, cvb::CvTracks *tracks, std::vector<Area> *areas, Mat *verboseImg)
+void TrackedVehicleManager::processTracks(unsigned int frameIdx, cvb::CvTracks *tracks, std::vector<Area> *areas, Mat *verboseImg, Mat *srcImage, Mat *foregroundMask)
 {
 	cvb::CvTracks::const_iterator it;
 	for (it = tracks->begin(); it != tracks->end(); ++it)
 	{
 		TrackedVehicle *vehicle = getTrackedVehicleOrCreate(it->second->id);
 
-		vehicle->registerDetectionAndCheckForAreaIntersections(frameIdx, it->second, areas);
+		vehicle->registerDetectionAndCheckForAreaIntersections(frameIdx, it->second, areas, srcImage, foregroundMask);
 	}
 }
 
