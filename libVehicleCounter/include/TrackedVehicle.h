@@ -6,6 +6,7 @@
 
 #include "cvblobwrapper.h"
 #include "area.h"
+#include "MeasurementExport.h"
 
 using namespace std;
 
@@ -21,8 +22,13 @@ class TrackedVehicle
 	void checkForAreaIntersections(unsigned int frameIdx, cvb::CvTrack *currentDetectingCvTrack, std::vector<Area> *areas);
 
 public:
+	MeasurementExport *measurementExport;
+
 	TrackedVehicle(unsigned int iTrackID);
 	void registerDetectionAndCheckForAreaIntersections(unsigned int frameIdx, cvb::CvTrack *currentDetectingCvTrack, std::vector<Area> *areas, Mat *sourceImage=NULL, Mat *foregroundMask=NULL);
+	
+	// call this after all detections
+	void exportAllAreaHits();
 
 	friend std::ostream& operator<<(std::ostream& output, TrackedVehicle &trackedVehicle);
 };

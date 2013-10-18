@@ -30,6 +30,7 @@
 #include "area.h"
 
 #include "TrackedVehicleManager.h"
+#include "MeasurementExport.h"
 
 using namespace cv;
 using namespace LogConfigTime;
@@ -151,6 +152,9 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 	Mat openKernel = getStructuringElement(MORPH_ELLIPSE, Size(3,3));
 
 	TrackedVehicleManager trackedVehicleManager;
+	MeasurementExport *measurementExport = new MeasurementExport(configmanager.detectionOutputFilename,
+		configmanager.areaHitOutputFilename, configmanager.imageOutputDirectory, configmanager.doSaveImages);
+	trackedVehicleManager.measurementExport = measurementExport;
 
 	unsigned int frameIdx = 0;
 	enum stateEnum
@@ -230,7 +234,7 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 			state = pause;
 			break;
 		case 's':
-			trackedVehicleManager.showDetections();
+			trackedVehicleManager.exportAreaHits(true,true);
 			break;
 		default:
 			cout << "Press ESC to exit." << endl;

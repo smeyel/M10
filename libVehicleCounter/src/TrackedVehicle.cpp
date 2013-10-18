@@ -11,14 +11,27 @@ void TrackedVehicle::registerDetection(unsigned int frameIdx, cvb::CvTrack *curr
 	Size size(currentDetectingCvTrack->maxx - currentDetectingCvTrack->minx, currentDetectingCvTrack->maxy - currentDetectingCvTrack->miny);
 	Rect rect(upperLeft,size);
 
-//	Mat srcImgRoI(*sourceImage,rect);
-/*	if (sourceImage)
+	string srcImgRoiFilename;
+	string foreImgRoiFilename;
+
+	// Save images
+	if (sourceImage)
 	{
-		cv::Mat roi = (*sourceImage)(rect);
-		imwrite("dummy.png",roi);
-	}*/
+		srcImgRoiFilename = this->measurementExport->saveimage(sourceImage,rect);
+	}
+	if (foregroundMask)
+	{
+		foreImgRoiFilename = this->measurementExport->saveimage(foregroundMask,rect);
+	}
 
-
+	// Save detection data
+	measurementExport->detectionOutput
+		<< this->trackID << ";"
+		<< frameIdx << ";"
+		<< upperLeft.x << ";" << upperLeft.y << ";"
+		<< size.width << ";" << size.height << ";"
+		<< srcImgRoiFilename << ";"
+		<< foreImgRoiFilename << endl;
 }
 
 bool TrackedVehicle::isIntersecting(cvb::CvTrack *track, Area *area)
@@ -51,6 +64,19 @@ void TrackedVehicle::registerDetectionAndCheckForAreaIntersections(unsigned int 
 {
 	registerDetection(frameIdx, currentDetectingCvTrack, sourceImage, foregroundMask);
 	checkForAreaIntersections(frameIdx, currentDetectingCvTrack, areas);
+}
+
+void TrackedVehicle::exportAllAreaHits()
+{
+	measurementExport->areaHitOutput
+		<< this->trackID << ";";
+	for(vector<unsigned int>::iterator it=areaHits.begin(); it!=areaHits.end(); it++)
+	{
+		measurementExport->areaHitOutput
+			<< *it << ";";
+	}
+	measurementExport->areaHitOutput
+		<< endl;
 }
 
 std::ostream& operator<<(std::ostream& output, TrackedVehicle &trackedVehicle)

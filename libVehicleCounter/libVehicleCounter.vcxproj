@@ -77,12 +77,14 @@
   <ItemGroup>
     <ClInclude Include="include\area.h" />
     <ClInclude Include="include\cvblobwrapper.h" />
+    <ClInclude Include="include\MeasurementExport.h" />
     <ClInclude Include="include\TrackedVehicle.h" />
     <ClInclude Include="include\TrackedVehicleManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\area.cpp" />
     <ClCompile Include="src\cvblobwrapper.cpp" />
+    <ClCompile Include="src\MeasurementExport.cpp" />
     <ClCompile Include="src\TrackedVehicle.cpp" />
     <ClCompile Include="src\TrackedVehicleManager.cpp" />
   </ItemGroup>

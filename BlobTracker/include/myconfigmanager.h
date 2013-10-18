@@ -20,6 +20,11 @@ class MyConfigManager
 		trackedAreaInputFilename = reader->getStringValue("input","trackedAreaInputFilename");
 		backgroundAreaInputFilename = reader->getStringValue("input","backgroundAreaInputFilename");
 
+		detectionOutputFilename = reader->getStringValue("output","detectionOutputFilename");
+		areaHitOutputFilename = reader->getStringValue("output","areaHitOutputFilename");
+		imageOutputDirectory = reader->getStringValue("output","imageOutputDirectory");
+		doSaveImages = reader->getBoolValue("output","doSaveImages");
+
 		showSRC = reader->getBoolValue("show","showSRC");
 		showFORE = reader->getBoolValue("show","showFORE");
 		showBACK = reader->getBoolValue("show","showBACK");
@@ -45,6 +50,11 @@ public:
 
 	std::string trackedAreaInputFilename;
 	std::string backgroundAreaInputFilename;
+
+	std::string detectionOutputFilename;
+	std::string areaHitOutputFilename;
+	std::string imageOutputDirectory;
+	bool doSaveImages;
 
 	bool showSRC;
 	bool showFORE;
