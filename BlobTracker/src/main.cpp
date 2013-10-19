@@ -151,6 +151,8 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 
 	Mat openKernel = getStructuringElement(MORPH_ELLIPSE, Size(3,3));
 
+	TrackedVehicle::showVectorsAsPath = configmanager.showVectorsAsPath;
+
 	TrackedVehicleManager trackedVehicleManager;
 	MeasurementExport *measurementExport = new MeasurementExport(configmanager.detectionOutputFilename,
 		configmanager.areaHitOutputFilename, configmanager.imageOutputDirectory, configmanager.doSaveImages);

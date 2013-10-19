@@ -5,6 +5,7 @@
 
 #define DEFAULTCONFIDENCE 0.1
 
+bool TrackedVehicle::showVectorsAsPath;
 
 void TrackedVehicle::registerDetection(unsigned int frameIdx, cvb::CvTrack *currentDetectingCvTrack)
 {
@@ -85,17 +86,29 @@ void TrackedVehicle::exportMotionVectors(float minConfidence)
 
 void TrackedVehicle::showPath(Mat *img)
 {
-	for(vector<LocationRegistration>::iterator it=locationRegistrations.begin(); it != (locationRegistrations.end()-1); it++)
+	if (showVectorsAsPath)
 	{
-		int color = (int)(255. * (*it).confidence);
-		if ( (*(it+1)).frameIdx > (*it).frameIdx+1)
+		for(vector<LocationRegistration>::iterator it=locationRegistrations.begin(); it != (locationRegistrations.end()-1); it++)
 		{
-			// Not continuous detection sequence
-			continue;
+			int color = (int)(255. * (*it).confidence);
+			if ( (*(it+1)).frameIdx > (*it).frameIdx+1)
+			{
+				// Not continuous detection sequence
+				continue;
+			}
+			Point p1 = (*(it)).location;
+			Point p2 = (*(it+1)).location;
+			line(*img,p1,p2,Scalar(color,color,color));
 		}
-		Point p1 = (*(it)).location;
-		Point p2 = (*(it+1)).location;
-		line(*img,p1,p2,Scalar(color,color,color));
+	}
+	else
+	{
+		for(vector<LocationRegistration>::iterator it=locationRegistrations.begin(); it != locationRegistrations.end(); it++)
+		{
+			int color = (int)(255. * (*it).confidence);
+			Point p = (*(it)).location;
+			circle(*img,p,2,Scalar(color,color,color));
+		}
 	}
 }
 
@@ -155,8 +168,6 @@ void TrackedVehicle::recalculateLocationConfidences()
 		(*(it+1)).confidence = manager->motionVectorStorage->getConfidence(p1,p2);
 	}
 }
-
-
 
 std::ostream& operator<<(std::ostream& output, TrackedVehicle &trackedVehicle)
 {

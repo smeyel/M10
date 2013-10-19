@@ -36,6 +36,8 @@ class TrackedVehicle
 	TrackedVehicleManager *manager;
 
 public:
+	static bool showVectorsAsPath;	// false: dots only
+
 	TrackedVehicle(unsigned int iTrackID, TrackedVehicleManager *manager);
 
 	void registerDetection(unsigned int frameIdx, cvb::CvTrack *currentDetectingCvTrack);

@@ -31,6 +31,7 @@ class MyConfigManager
 		showBACK = reader->getBoolValue("show","showBACK");
 		showLocationPredictions = reader->getBoolValue("show","showLocationPredictions");
 		showAllMotionVectors = reader->getBoolValue("show","showAllMotionVectors");
+		showVectorsAsPath = reader->getBoolValue("show","showVectorsAsPath");
 
 		minBlobArea = reader->getIntValue("blob","minBlobArea");
 		maxBlobArea = reader->getIntValue("blob","maxBlobArea");
@@ -65,6 +66,7 @@ public:
 	bool showBACK;
 	bool showLocationPredictions;
 	bool showAllMotionVectors;
+	bool showVectorsAsPath;
 
 	unsigned int minBlobArea;
 	unsigned int maxBlobArea;
