@@ -4,22 +4,20 @@ TrackedVehicle *TrackedVehicleManager::getTrackedVehicleOrCreate(unsigned int tr
 {
 	if (trackedVehicles.count(trackId) == 0)
 	{
-		TrackedVehicle *trackedVehicle = new TrackedVehicle(trackId);
-		trackedVehicle->measurementExport = this->measurementExport;
-		trackedVehicle->motionVectorStorage = this->motionVectorStorage;
+		TrackedVehicle *trackedVehicle = new TrackedVehicle(trackId, this);
 		trackedVehicles.insert(std::make_pair(trackId, trackedVehicle));
 	}
 	return trackedVehicles[trackId];
 }
 
-void TrackedVehicleManager::processTracks(unsigned int frameIdx, cvb::CvTracks *tracks, std::vector<Area> *areas, Mat *verboseImg, Mat *srcImage, Mat *foregroundMask)
+void TrackedVehicleManager::processTracks(unsigned int frameIdx, cvb::CvTracks *tracks)
 {
 	cvb::CvTracks::const_iterator it;
 	for (it = tracks->begin(); it != tracks->end(); ++it)
 	{
 		TrackedVehicle *vehicle = getTrackedVehicleOrCreate(it->second->id);
 
-		vehicle->registerDetectionAndCheckForAreaIntersections(frameIdx, it->second, areas, srcImage, foregroundMask);
+		vehicle->registerDetectionAndCheckForAreaIntersections(frameIdx, it->second);
 	}
 }
 

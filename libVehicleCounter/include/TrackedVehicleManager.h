@@ -11,7 +11,6 @@
 
 #include "MeasurementExport.h"
 
-
 using namespace std;
 
 class TrackedVehicleManager
@@ -19,11 +18,18 @@ class TrackedVehicleManager
 	map<unsigned int,TrackedVehicle*> trackedVehicles;
 
 public:
+	Mat *currentVerboseImg;
+	Mat *currentSourceImage;
+	Mat *currentForegroundMask;
+	Mat *currentVerboseImage;
+
+	std::vector<Area> *trackedAreas;
+
 	MeasurementExport *measurementExport;
 	MotionVectorStorage *motionVectorStorage;	// Used only to set for new TrackedVehicles
 
 	TrackedVehicle *getTrackedVehicleOrCreate(unsigned int trackId);
-	void processTracks(unsigned int frameIdx, cvb::CvTracks *tracks, std::vector<Area> *areas, Mat *verboseImg = NULL, Mat *srcImage = NULL, Mat *foregroundMask = NULL);
+	void processTracks(unsigned int frameIdx, cvb::CvTracks *tracks);
 	void exportAreaHits(bool onStdout, bool onExportfile);
 };
 

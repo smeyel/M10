@@ -11,6 +11,8 @@
 
 using namespace std;
 
+class TrackedVehicleManager;	// Against circular header includes.
+
 /** For every timeframe: TrackID, location, visual properties (size etc for clustering), intersecting detection Areas
 */
 class TrackedVehicle
@@ -23,16 +25,15 @@ class TrackedVehicle
 	Point lastKnownLocation;
 	unsigned int lastKnownLocationFrameIdx;
 
-	void registerDetection(unsigned int frameIdx, cvb::CvTrack *currentDetectingCvTrack, Mat *sourceImage=NULL, Mat *foregroundMask=NULL);
+	void registerDetection(unsigned int frameIdx, cvb::CvTrack *currentDetectingCvTrack);
 	bool isIntersecting(cvb::CvTrack *track, Area *area);
-	void checkForAreaIntersections(unsigned int frameIdx, cvb::CvTrack *currentDetectingCvTrack, std::vector<Area> *areas);
+	void checkForAreaIntersections(unsigned int frameIdx, cvb::CvTrack *currentDetectingCvTrack);
+
+	TrackedVehicleManager *manager;
 
 public:
-	MeasurementExport *measurementExport;
-	MotionVectorStorage *motionVectorStorage;
-
-	TrackedVehicle(unsigned int iTrackID);
-	void registerDetectionAndCheckForAreaIntersections(unsigned int frameIdx, cvb::CvTrack *currentDetectingCvTrack, std::vector<Area> *areas, Mat *sourceImage=NULL, Mat *foregroundMask=NULL);
+	TrackedVehicle(unsigned int iTrackID, TrackedVehicleManager *manager);
+	void registerDetectionAndCheckForAreaIntersections(unsigned int frameIdx, cvb::CvTrack *currentDetectingCvTrack);
 	
 	// call this after all detections
 	void exportAllAreaHits();

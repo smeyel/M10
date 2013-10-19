@@ -157,6 +157,11 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 	trackedVehicleManager.measurementExport = measurementExport;
 	MotionVectorStorage *motionVectorStorage = new MotionVectorStorage();
 	trackedVehicleManager.motionVectorStorage = motionVectorStorage;
+	
+	trackedVehicleManager.currentForegroundMask = foregroundFrame;
+	trackedVehicleManager.currentSourceImage = src;
+	trackedVehicleManager.currentVerboseImage = result;
+	trackedVehicleManager.trackedAreas = &areas;
 
 	unsigned int frameIdx = 0;
 	enum stateEnum
@@ -194,7 +199,7 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 			src->copyTo(*result);
 			cvblob->findWhiteBlobs(foregroundFrame,result);
 
-			trackedVehicleManager.processTracks(frameIdx,cvblob->getCvTracks(),&areas,NULL,src,foregroundFrame);
+			trackedVehicleManager.processTracks(frameIdx,cvblob->getCvTracks());
 		}
 
 		if (configmanager.showFORE)

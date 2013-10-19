@@ -1,8 +1,9 @@
 #include <opencv2/highgui/highgui.hpp>  // for imwrite
 
 #include "TrackedVehicle.h"
+#include "TrackedVehicleManager.h"
 
-void TrackedVehicle::registerDetection(unsigned int frameIdx, cvb::CvTrack *currentDetectingCvTrack, Mat *sourceImage, Mat *foregroundMask)
+void TrackedVehicle::registerDetection(unsigned int frameIdx, cvb::CvTrack *currentDetectingCvTrack)
 {
 	// Save coordinates, image, moments etc.
 
@@ -15,17 +16,17 @@ void TrackedVehicle::registerDetection(unsigned int frameIdx, cvb::CvTrack *curr
 	string foreImgRoiFilename;
 
 	// Save images
-	if (sourceImage)
+	if (manager->currentSourceImage)
 	{
-		srcImgRoiFilename = this->measurementExport->saveimage(sourceImage,rect);
+		srcImgRoiFilename = this->manager->measurementExport->saveimage(manager->currentSourceImage,rect);
 	}
-	if (foregroundMask)
+	if (manager->currentForegroundMask)
 	{
-		foreImgRoiFilename = this->measurementExport->saveimage(foregroundMask,rect);
+		foreImgRoiFilename = this->manager->measurementExport->saveimage(manager->currentForegroundMask,rect);
 	}
 
 	// Save detection data
-	measurementExport->detectionOutput
+	manager->measurementExport->detectionOutput
 		<< this->trackID << ";"
 		<< frameIdx << ";"
 		<< upperLeft.x << ";" << upperLeft.y << ";"
@@ -34,15 +35,15 @@ void TrackedVehicle::registerDetection(unsigned int frameIdx, cvb::CvTrack *curr
 		<< foreImgRoiFilename << endl;
 
 	// Store motion vector
-	if (lastKnownLocationFrameIdx == frameIdx-1 && motionVectorStorage!=NULL)
+	if (lastKnownLocationFrameIdx == frameIdx-1 && manager->motionVectorStorage!=NULL)
 	{
-		motionVectorStorage->addMotionVector(lastKnownLocation,centroid);
+		manager->motionVectorStorage->addMotionVector(lastKnownLocation,centroid);
 	}
 	lastKnownLocation = centroid;
 	lastKnownLocationFrameIdx = frameIdx;
 
 	// Show motion vector prediction cloud for next location
-	motionVectorStorage->showMotionVectorPredictionCloud(centroid,sourceImage);
+	manager->motionVectorStorage->showMotionVectorPredictionCloud(centroid,manager->currentVerboseImage);
 }
 
 bool TrackedVehicle::isIntersecting(cvb::CvTrack *track, Area *area)
@@ -51,43 +52,44 @@ bool TrackedVehicle::isIntersecting(cvb::CvTrack *track, Area *area)
 	return area->isRectangleIntersecting(rect);
 }
 
-void TrackedVehicle::checkForAreaIntersections(unsigned int frameIdx, cvb::CvTrack *currentDetectingCvTrack, std::vector<Area> *areas)
+void TrackedVehicle::checkForAreaIntersections(unsigned int frameIdx, cvb::CvTrack *currentDetectingCvTrack)
 {
 	// Register area hits
-	for(unsigned int areaIdx=0; areaIdx<areas->size(); areaIdx++)
+	for(unsigned int areaIdx=0; areaIdx<manager->trackedAreas->size(); areaIdx++)
 	{
-		if (isIntersecting(currentDetectingCvTrack, &(*areas)[areaIdx]))
+		if (isIntersecting(currentDetectingCvTrack, &(*manager->trackedAreas)[areaIdx]))
 		{
 			cout << (currentDetectingCvTrack->inactive ? "inactive " : "  active ");
-			cout << "CAR " << trackID << " in AREA " << (*areas)[areaIdx].id << endl;
+			cout << "CAR " << trackID << " in AREA " << (*manager->trackedAreas)[areaIdx].id << endl;
 
 			areaHits.push_back(areaIdx);
 		}
 	}
 }
 
-TrackedVehicle::TrackedVehicle(unsigned int iTrackID)
+TrackedVehicle::TrackedVehicle(unsigned int iTrackID, TrackedVehicleManager *manager)
 {
+	this->manager = manager;
 	trackID = iTrackID;
 }
 
-void TrackedVehicle::registerDetectionAndCheckForAreaIntersections(unsigned int frameIdx, cvb::CvTrack *currentDetectingCvTrack, std::vector<Area> *areas, Mat *sourceImage, Mat *foregroundMask)
+void TrackedVehicle::registerDetectionAndCheckForAreaIntersections(unsigned int frameIdx, cvb::CvTrack *currentDetectingCvTrack)
 {
-	registerDetection(frameIdx, currentDetectingCvTrack, sourceImage, foregroundMask);
+	registerDetection(frameIdx, currentDetectingCvTrack);
 
-	checkForAreaIntersections(frameIdx, currentDetectingCvTrack, areas);
+	checkForAreaIntersections(frameIdx, currentDetectingCvTrack);
 }
 
 void TrackedVehicle::exportAllAreaHits()
 {
-	measurementExport->areaHitOutput
+	manager->measurementExport->areaHitOutput
 		<< this->trackID << ";";
 	for(vector<unsigned int>::iterator it=areaHits.begin(); it!=areaHits.end(); it++)
 	{
-		measurementExport->areaHitOutput
+		manager->measurementExport->areaHitOutput
 			<< *it << ";";
 	}
-	measurementExport->areaHitOutput
+	manager->measurementExport->areaHitOutput
 		<< endl;
 }
 

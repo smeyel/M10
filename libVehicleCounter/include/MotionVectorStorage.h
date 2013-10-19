@@ -76,7 +76,7 @@ public:
 				continue;
 			}
 			int color = (int)(255 * weight);
-			circle(*img,(*it)->getDst(),3,Scalar(color,color,color));
+			circle(*img,(*it)->getDst(),3,Scalar(0,0,color));
 		}
 	}
 
