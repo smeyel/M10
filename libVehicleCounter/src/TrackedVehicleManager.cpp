@@ -6,6 +6,7 @@ TrackedVehicle *TrackedVehicleManager::getTrackedVehicleOrCreate(unsigned int tr
 	{
 		TrackedVehicle *trackedVehicle = new TrackedVehicle(trackId);
 		trackedVehicle->measurementExport = this->measurementExport;
+		trackedVehicle->motionVectorStorage = this->motionVectorStorage;
 		trackedVehicles.insert(std::make_pair(trackId, trackedVehicle));
 	}
 	return trackedVehicles[trackId];

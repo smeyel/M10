@@ -20,6 +20,7 @@ class TrackedVehicleManager
 
 public:
 	MeasurementExport *measurementExport;
+	MotionVectorStorage *motionVectorStorage;	// Used only to set for new TrackedVehicles
 
 	TrackedVehicle *getTrackedVehicleOrCreate(unsigned int trackId);
 	void processTracks(unsigned int frameIdx, cvb::CvTracks *tracks, std::vector<Area> *areas, Mat *verboseImg = NULL, Mat *srcImage = NULL, Mat *foregroundMask = NULL);

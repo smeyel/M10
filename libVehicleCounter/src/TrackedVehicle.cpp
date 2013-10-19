@@ -32,6 +32,17 @@ void TrackedVehicle::registerDetection(unsigned int frameIdx, cvb::CvTrack *curr
 		<< size.width << ";" << size.height << ";"
 		<< srcImgRoiFilename << ";"
 		<< foreImgRoiFilename << endl;
+
+	// Store motion vector
+	if (lastKnownLocationFrameIdx == frameIdx-1 && motionVectorStorage!=NULL)
+	{
+		motionVectorStorage->addMotionVector(lastKnownLocation,centroid);
+	}
+	lastKnownLocation = centroid;
+	lastKnownLocationFrameIdx = frameIdx;
+
+	// Show motion vector prediction cloud for next location
+	motionVectorStorage->showMotionVectorPredictionCloud(centroid,sourceImage);
 }
 
 bool TrackedVehicle::isIntersecting(cvb::CvTrack *track, Area *area)
@@ -63,6 +74,7 @@ TrackedVehicle::TrackedVehicle(unsigned int iTrackID)
 void TrackedVehicle::registerDetectionAndCheckForAreaIntersections(unsigned int frameIdx, cvb::CvTrack *currentDetectingCvTrack, std::vector<Area> *areas, Mat *sourceImage, Mat *foregroundMask)
 {
 	registerDetection(frameIdx, currentDetectingCvTrack, sourceImage, foregroundMask);
+
 	checkForAreaIntersections(frameIdx, currentDetectingCvTrack, areas);
 }
 

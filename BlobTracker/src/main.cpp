@@ -155,6 +155,8 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 	MeasurementExport *measurementExport = new MeasurementExport(configmanager.detectionOutputFilename,
 		configmanager.areaHitOutputFilename, configmanager.imageOutputDirectory, configmanager.doSaveImages);
 	trackedVehicleManager.measurementExport = measurementExport;
+	MotionVectorStorage *motionVectorStorage = new MotionVectorStorage();
+	trackedVehicleManager.motionVectorStorage = motionVectorStorage;
 
 	unsigned int frameIdx = 0;
 	enum stateEnum
@@ -216,6 +218,7 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 		{
 			areas[i].draw(result,Scalar(0,255,0),false);
 		}
+		motionVectorStorage->showAllMotionVectors(result);
 
 		imshow("RES", *result);
 
@@ -235,6 +238,9 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 			break;
 		case 's':
 			trackedVehicleManager.exportAreaHits(true,true);
+			break;
+		case 'c':
+			motionVectorStorage->clear();
 			break;
 		default:
 			cout << "Press ESC to exit." << endl;
