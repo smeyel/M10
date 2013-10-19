@@ -40,3 +40,19 @@ void TrackedVehicleManager::collectMotionVectors()
 		(*it).second->exportMotionVectors();
 	}
 }
+
+void TrackedVehicleManager::showAllPath(Mat *img)
+{
+	for(map<unsigned int,TrackedVehicle*>::iterator it = trackedVehicles.begin(); it != trackedVehicles.end(); it++)
+	{
+		(*it).second->showPath(img);
+	}
+}
+
+void TrackedVehicleManager::recalculateLocationConfidences()
+{
+	for(map<unsigned int,TrackedVehicle*>::iterator it = trackedVehicles.begin(); it != trackedVehicles.end(); it++)
+	{
+		(*it).second->recalculateLocationConfidences();
+	}
+}

@@ -26,6 +26,7 @@ void TrackedVehicle::registerDetection(unsigned int frameIdx, cvb::CvTrack *curr
 	}
 
 	// Save detection data
+	// TODO export with confidence value!
 	manager->measurementExport->detectionOutput
 		<< this->trackID << ";"
 		<< frameIdx << ";"
@@ -33,9 +34,21 @@ void TrackedVehicle::registerDetection(unsigned int frameIdx, cvb::CvTrack *curr
 		<< size.width << ";" << size.height << ";"
 		<< srcImgRoiFilename << ";"
 		<< foreImgRoiFilename << endl;
+
+	// Estimate detection confidence
+	//	Last location: last element of locationRegistrations
+	//	Current location: centroid
+	float confidence = 1.;
+	if (locationRegistrations.size() > 0)
+	{
+		Point prevLocation = (locationRegistrations.end()-1)->location;
+		confidence = manager->motionVectorStorage->getConfidence(prevLocation,centroid);
+		cout << "Confidence of new location: " << confidence << endl;
+	}
+
 	LocationRegistration registration;
 	registration.frameIdx = frameIdx;
-	registration.confidence = 1.;
+	registration.confidence = confidence;	// 1.;
 	registration.location = centroid;
 	locationRegistrations.push_back(registration);
 
@@ -61,6 +74,22 @@ void TrackedVehicle::exportMotionVectors()
 		}
 		lastLocation = (*it).location;
 		lastFrameIdx = (*it).frameIdx;
+	}
+}
+
+void TrackedVehicle::showPath(Mat *img)
+{
+	for(vector<LocationRegistration>::iterator it=locationRegistrations.begin(); it != (locationRegistrations.end()-1); it++)
+	{
+		int color = (int)(255. * (*it).confidence);
+		if ( (*(it+1)).frameIdx > (*it).frameIdx+1)
+		{
+			// Not continuous detection sequence
+			continue;
+		}
+		Point p1 = (*(it)).location;
+		Point p2 = (*(it+1)).location;
+		line(*img,p1,p2,Scalar(color,color,color));
 	}
 }
 
@@ -110,6 +139,18 @@ vector<unsigned int> TrackedVehicle::exportAllAreaHits(float minConfidence)
 	}
 	return resultList;
 }
+
+void TrackedVehicle::recalculateLocationConfidences()
+{
+	for(vector<LocationRegistration>::iterator it=locationRegistrations.begin(); it != (locationRegistrations.end()-1); it++)
+	{
+		Point p1 = (*(it)).location;
+		Point p2 = (*(it+1)).location;
+		(*(it+1)).confidence = manager->motionVectorStorage->getConfidence(p1,p2);
+	}
+}
+
+
 
 std::ostream& operator<<(std::ostream& output, TrackedVehicle &trackedVehicle)
 {

@@ -34,6 +34,9 @@ public:
 	void processTracks(unsigned int frameIdx, cvb::CvTracks *tracks);
 	void exportAreaHits(bool onStdout, bool onExportfile);
 	void collectMotionVectors();
+
+	void showAllPath(Mat *img);
+	void recalculateLocationConfidences();
 };
 
 #endif

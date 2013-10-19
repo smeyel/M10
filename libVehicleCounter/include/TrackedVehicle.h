@@ -41,6 +41,11 @@ public:
 
 	void exportMotionVectors();
 	
+	void showPath(Mat *img);
+
+	void recalculateLocationConfidences();
+
+
 	// call this after all detections
 	vector<unsigned int> exportAllAreaHits(float minConfidence = 0.1);
 

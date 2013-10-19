@@ -228,6 +228,7 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 		{
 			motionVectorStorage->showAllMotionVectors(result,Scalar(255,0,0));
 		}
+		trackedVehicleManager.showAllPath(result);
 
 		imshow("RES", *result);
 
@@ -250,6 +251,7 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 			break;
 		case 'm':
 			trackedVehicleManager.collectMotionVectors();
+			trackedVehicleManager.recalculateLocationConfidences();
 			break;
 		case 'M':
 			motionVectorStorage->save(configmanager.motionVectorInputFilename);

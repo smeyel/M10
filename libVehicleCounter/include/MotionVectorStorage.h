@@ -14,10 +14,13 @@ using namespace std;
 #  define MAX(a,b)  ((a) < (b) ? (b) : (a))
 #endif
 
+#define WEIGHTMAXDISTANCE	30.
+
 class MotionVector
 {
 	Point src;
 	Point dst;
+
 public:
 	// Default constructor used by loading from FileStorage
 	MotionVector()
@@ -50,7 +53,19 @@ public:
 	{
 		Point p2 = (srcOrDest == Source ? src : dst);
 		double sqrDistance = sqrt((double)((p.x-p2.x)*(p.x-p2.x) + (p.y-p2.y)*(p.y-p2.y)));
-		return MAX(1.0-(sqrDistance/50.0), 1.0 / sqrDistance);
+		double linearTerm = MAX( 1.0-(sqrDistance/WEIGHTMAXDISTANCE) , 0.);
+//		double reciprocalTerm = (sqrDistance > 1 ? 1.0 / sqrDistance : 1);
+		return linearTerm;
+	}
+
+	double getWeight(Point p1, Point p2)
+	{
+		double sqrDistance1 = sqrt((double)((src.x-p1.x)*(src.x-p1.x) + (src.y-p1.y)*(src.y-p1.y)));
+		double sqrDistance2 = sqrt((double)((dst.x-p2.x)*(dst.x-p2.x) + (dst.y-p2.y)*(dst.y-p2.y)));
+		double linearTerm1 = MAX( 1.0-(sqrDistance1/WEIGHTMAXDISTANCE) , 0.);
+		double linearTerm2 = MAX( 1.0-(sqrDistance2/WEIGHTMAXDISTANCE) , 0.);
+//		double reciprocalTerm = (sqrDistance > 1 ? 1.0 / sqrDistance : 1);
+		return linearTerm1 * linearTerm2;
 	}
 
 	void save(FileStorage *fs)
@@ -76,6 +91,26 @@ public:
 	{
 		MotionVector *mv = new MotionVector(src,dst);
 		motionVectors.push_back(mv);
+	}
+
+	float getConfidence(Point prevLocation, Point currentLocation)
+	{
+		// TODO: use more complex confidence estimation than choosing the maximal value!
+		// Otherwise, all matches with outliers will have maximal confidence.
+		double maxWeight = 0.;
+		for(vector<MotionVector *>::iterator it=motionVectors.begin(); it!=motionVectors.end(); it++)
+		{
+/*			double prevLocationWeight = (*it)->getWeight(prevLocation,MotionVector::SourceOrDestination::Source);
+			double currentLocationWeight = (*it)->getWeight(currentLocation,MotionVector::SourceOrDestination::Destination);
+			double weight = prevLocationWeight * currentLocationWeight;*/
+			double weight = (*it)->getWeight(prevLocation,currentLocation);
+
+			if (weight > maxWeight && weight<1.)	// Exact match may be the outlier itself!
+			{
+				maxWeight = weight;
+			}
+		}
+		return maxWeight;
 	}
 
 	~MotionVectorStorage()
