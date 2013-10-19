@@ -25,6 +25,8 @@ public:
 
 	std::vector<Area> *trackedAreas;
 
+	bool showLocationPredictions;
+
 	MeasurementExport *measurementExport;
 	MotionVectorStorage *motionVectorStorage;	// Used only to set for new TrackedVehicles
 

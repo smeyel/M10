@@ -43,7 +43,10 @@ void TrackedVehicle::registerDetection(unsigned int frameIdx, cvb::CvTrack *curr
 	lastKnownLocationFrameIdx = frameIdx;
 
 	// Show motion vector prediction cloud for next location
-	manager->motionVectorStorage->showMotionVectorPredictionCloud(centroid,manager->currentVerboseImage);
+	if (manager->showLocationPredictions)
+	{
+		manager->motionVectorStorage->showMotionVectorPredictionCloud(centroid,manager->currentVerboseImage, 0.5);
+	}
 }
 
 bool TrackedVehicle::isIntersecting(cvb::CvTrack *track, Area *area)

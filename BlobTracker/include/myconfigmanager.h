@@ -19,6 +19,7 @@ class MyConfigManager
 		videoInputFilename = reader->getStringValue("input","videoInputFilename");
 		trackedAreaInputFilename = reader->getStringValue("input","trackedAreaInputFilename");
 		backgroundAreaInputFilename = reader->getStringValue("input","backgroundAreaInputFilename");
+		motionVectorInputFilename = reader->getStringValue("input","motionVectorInputFilename");
 
 		detectionOutputFilename = reader->getStringValue("output","detectionOutputFilename");
 		areaHitOutputFilename = reader->getStringValue("output","areaHitOutputFilename");
@@ -28,6 +29,8 @@ class MyConfigManager
 		showSRC = reader->getBoolValue("show","showSRC");
 		showFORE = reader->getBoolValue("show","showFORE");
 		showBACK = reader->getBoolValue("show","showBACK");
+		showLocationPredictions = reader->getBoolValue("show","showLocationPredictions");
+		showAllMotionVectors = reader->getBoolValue("show","showAllMotionVectors");
 
 		minBlobArea = reader->getIntValue("blob","minBlobArea");
 		maxBlobArea = reader->getIntValue("blob","maxBlobArea");
@@ -55,10 +58,13 @@ public:
 	std::string areaHitOutputFilename;
 	std::string imageOutputDirectory;
 	bool doSaveImages;
+	std::string motionVectorInputFilename;
 
 	bool showSRC;
 	bool showFORE;
 	bool showBACK;
+	bool showLocationPredictions;
+	bool showAllMotionVectors;
 
 	unsigned int minBlobArea;
 	unsigned int maxBlobArea;

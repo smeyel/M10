@@ -162,6 +162,7 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 	trackedVehicleManager.currentSourceImage = src;
 	trackedVehicleManager.currentVerboseImage = result;
 	trackedVehicleManager.trackedAreas = &areas;
+	trackedVehicleManager.showLocationPredictions = configmanager.showLocationPredictions;
 
 	unsigned int frameIdx = 0;
 	enum stateEnum
@@ -223,7 +224,10 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 		{
 			areas[i].draw(result,Scalar(0,255,0),false);
 		}
-		motionVectorStorage->showAllMotionVectors(result);
+		if (configmanager.showAllMotionVectors)
+		{
+			motionVectorStorage->showAllMotionVectors(result,Scalar(255,0,0));
+		}
 
 		imshow("RES", *result);
 
@@ -246,6 +250,12 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 			break;
 		case 'c':
 			motionVectorStorage->clear();
+			break;
+		case 'm':
+			motionVectorStorage->save(configmanager.motionVectorInputFilename);
+			break;
+		case 'i':
+			motionVectorStorage->load(configmanager.motionVectorInputFilename);
 			break;
 		default:
 			cout << "Press ESC to exit." << endl;
