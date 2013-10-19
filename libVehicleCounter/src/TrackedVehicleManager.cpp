@@ -17,7 +17,7 @@ void TrackedVehicleManager::processTracks(unsigned int frameIdx, cvb::CvTracks *
 	{
 		TrackedVehicle *vehicle = getTrackedVehicleOrCreate(it->second->id);
 
-		vehicle->registerDetectionAndCheckForAreaIntersections(frameIdx, it->second);
+		vehicle->registerDetection(frameIdx, it->second);
 	}
 }
 
@@ -30,5 +30,13 @@ void TrackedVehicleManager::exportAreaHits(bool onStdout, bool onExportfile)
 			cout << *(it->second);
 		if (onExportfile)
 			it->second->exportAllAreaHits();
+	}
+}
+
+void TrackedVehicleManager::collectMotionVectors()
+{
+	for(map<unsigned int,TrackedVehicle*>::iterator it = trackedVehicles.begin(); it != trackedVehicles.end(); it++)
+	{
+		(*it).second->exportMotionVectors();
 	}
 }

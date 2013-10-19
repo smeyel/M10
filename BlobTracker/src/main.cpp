@@ -239,11 +239,8 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 		case 27:
 			state = finished;
 			break;
-		case 'r':
-			state = run;
-			break;
 		case 'p':
-			state = pause;
+			state = (state == pause ? run : pause);
 			break;
 		case 's':
 			trackedVehicleManager.exportAreaHits(true,true);
@@ -252,6 +249,9 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 			motionVectorStorage->clear();
 			break;
 		case 'm':
+			trackedVehicleManager.collectMotionVectors();
+			break;
+		case 'M':
 			motionVectorStorage->save(configmanager.motionVectorInputFilename);
 			break;
 		case 'i':

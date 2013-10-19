@@ -23,6 +23,7 @@ public:
 	static void loadAreaList(const char *filename, vector<Area> *areas);
 
 	bool isRectangleIntersecting(Rect rect);
+	bool isPointInside(Point p);
 };
 
 #endif

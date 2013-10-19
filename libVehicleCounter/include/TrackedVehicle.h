@@ -17,26 +17,32 @@ class TrackedVehicleManager;	// Against circular header includes.
 */
 class TrackedVehicle
 {
+	struct LocationRegistration
+	{
+		unsigned int frameIdx;
+		float confidence;
+		Point location;
+	};
+
 	unsigned int trackID;	// May not reference CvTrack, that is removed after getting useless!
-	vector<unsigned int> areaHits;
+	vector<LocationRegistration> locationRegistrations;
 
-	// Last known location and its frame index
-	//	Used by registerDetection to add motion vectors to motionVectorStorage.
-	Point lastKnownLocation;
-	unsigned int lastKnownLocationFrameIdx;
-
-	void registerDetection(unsigned int frameIdx, cvb::CvTrack *currentDetectingCvTrack);
 	bool isIntersecting(cvb::CvTrack *track, Area *area);
-	void checkForAreaIntersections(unsigned int frameIdx, cvb::CvTrack *currentDetectingCvTrack);
+	bool isIntersecting(LocationRegistration &registration, Area *area);
+
+	void checkForAreaIntersections(LocationRegistration &registration, vector<unsigned int> &areaHitList, float minConfidence);
 
 	TrackedVehicleManager *manager;
 
 public:
 	TrackedVehicle(unsigned int iTrackID, TrackedVehicleManager *manager);
-	void registerDetectionAndCheckForAreaIntersections(unsigned int frameIdx, cvb::CvTrack *currentDetectingCvTrack);
+
+	void registerDetection(unsigned int frameIdx, cvb::CvTrack *currentDetectingCvTrack);
+
+	void exportMotionVectors();
 	
 	// call this after all detections
-	void exportAllAreaHits();
+	vector<unsigned int> exportAllAreaHits(float minConfidence = 0.1);
 
 	friend std::ostream& operator<<(std::ostream& output, TrackedVehicle &trackedVehicle);
 };

@@ -154,7 +154,7 @@ bool Area::isRectangleIntersecting(Rect rect)
 	rectPolygon.push_back(ClipperLib::IntPoint( rect.x, rect.y+rect.height ));
 
 	ClipperLib::Polygon areaPolygon;
-	for(int i=0; i<points.size(); i++)
+	for(unsigned int i=0; i<points.size(); i++)
 	{
 		areaPolygon.push_back(ClipperLib::IntPoint( points[i].x, points[i].y ));
 	}
@@ -166,4 +166,9 @@ bool Area::isRectangleIntersecting(Rect rect)
 
 	bool isIntersecting = (solution.Childs.size() > 0);	// Is this enough?
 	return isIntersecting;
+}
+
+bool Area::isPointInside(Point p)
+{
+	return (pointPolygonTest(this->points, p, false) >= 0);
 }

@@ -7,7 +7,7 @@ void TrackedVehicle::registerDetection(unsigned int frameIdx, cvb::CvTrack *curr
 {
 	// Save coordinates, image, moments etc.
 
-	Point centroid(currentDetectingCvTrack->centroid.x,currentDetectingCvTrack->centroid.y);
+	Point centroid((int)currentDetectingCvTrack->centroid.x,(int)currentDetectingCvTrack->centroid.y);
 	Point upperLeft(currentDetectingCvTrack->minx, currentDetectingCvTrack->miny);
 	Size size(currentDetectingCvTrack->maxx - currentDetectingCvTrack->minx, currentDetectingCvTrack->maxy - currentDetectingCvTrack->miny);
 	Rect rect(upperLeft,size);
@@ -33,14 +33,11 @@ void TrackedVehicle::registerDetection(unsigned int frameIdx, cvb::CvTrack *curr
 		<< size.width << ";" << size.height << ";"
 		<< srcImgRoiFilename << ";"
 		<< foreImgRoiFilename << endl;
-
-	// Store motion vector
-	if (lastKnownLocationFrameIdx == frameIdx-1 && manager->motionVectorStorage!=NULL)
-	{
-		manager->motionVectorStorage->addMotionVector(lastKnownLocation,centroid);
-	}
-	lastKnownLocation = centroid;
-	lastKnownLocationFrameIdx = frameIdx;
+	LocationRegistration registration;
+	registration.frameIdx = frameIdx;
+	registration.confidence = 1.;
+	registration.location = centroid;
+	locationRegistrations.push_back(registration);
 
 	// Show motion vector prediction cloud for next location
 	if (manager->showLocationPredictions)
@@ -49,23 +46,47 @@ void TrackedVehicle::registerDetection(unsigned int frameIdx, cvb::CvTrack *curr
 	}
 }
 
+void TrackedVehicle::exportMotionVectors()
+{
+	OPENCV_ASSERT(manager->motionVectorStorage,"TrackedVehicle::exportMotionVectors","motionVectorStorage not set prior to export");
+	// use locationRegistrations
+	unsigned int lastFrameIdx = -2;
+	Point lastLocation;
+	for(vector<LocationRegistration>::iterator it=locationRegistrations.begin(); it != locationRegistrations.end(); it++)
+	{
+		if ((*it).frameIdx - lastFrameIdx == 1)
+		{
+			// For consecutive locations only
+			manager->motionVectorStorage->addMotionVector(lastLocation,(*it).location);
+		}
+		lastLocation = (*it).location;
+		lastFrameIdx = (*it).frameIdx;
+	}
+}
+
+
 bool TrackedVehicle::isIntersecting(cvb::CvTrack *track, Area *area)
 {
 	Rect rect(track->minx, track->miny, track->maxx - track->minx, track->maxy - track->miny);
 	return area->isRectangleIntersecting(rect);
 }
 
-void TrackedVehicle::checkForAreaIntersections(unsigned int frameIdx, cvb::CvTrack *currentDetectingCvTrack)
+bool TrackedVehicle::isIntersecting(LocationRegistration &registration, Area *area)
+{
+	return area->isPointInside(registration.location);
+}
+
+void TrackedVehicle::checkForAreaIntersections(LocationRegistration &registration, vector<unsigned int> &areaHitList, float minConfidence)
 {
 	// Register area hits
 	for(unsigned int areaIdx=0; areaIdx<manager->trackedAreas->size(); areaIdx++)
 	{
-		if (isIntersecting(currentDetectingCvTrack, &(*manager->trackedAreas)[areaIdx]))
+		if (isIntersecting(registration, &(*manager->trackedAreas)[areaIdx]))
 		{
-			cout << (currentDetectingCvTrack->inactive ? "inactive " : "  active ");
-			cout << "CAR " << trackID << " in AREA " << (*manager->trackedAreas)[areaIdx].id << endl;
+/*			cout << (currentDetectingCvTrack->inactive ? "inactive " : "  active ");
+			cout << "CAR " << trackID << " in AREA " << (*manager->trackedAreas)[areaIdx].id << endl;*/
 
-			areaHits.push_back(areaIdx);
+			areaHitList.push_back(areaIdx);
 		}
 	}
 }
@@ -76,33 +97,27 @@ TrackedVehicle::TrackedVehicle(unsigned int iTrackID, TrackedVehicleManager *man
 	trackID = iTrackID;
 }
 
-void TrackedVehicle::registerDetectionAndCheckForAreaIntersections(unsigned int frameIdx, cvb::CvTrack *currentDetectingCvTrack)
+vector<unsigned int> TrackedVehicle::exportAllAreaHits(float minConfidence)
 {
-	registerDetection(frameIdx, currentDetectingCvTrack);
-
-	checkForAreaIntersections(frameIdx, currentDetectingCvTrack);
-}
-
-void TrackedVehicle::exportAllAreaHits()
-{
-	manager->measurementExport->areaHitOutput
-		<< this->trackID << ";";
-	for(vector<unsigned int>::iterator it=areaHits.begin(); it!=areaHits.end(); it++)
+	vector<unsigned int> resultList;
+	// Go along all locations and check for area hits
+	for(vector<LocationRegistration>::iterator it=locationRegistrations.begin(); it!=locationRegistrations.end(); it++)
 	{
-		manager->measurementExport->areaHitOutput
-			<< *it << ";";
+		if (it->confidence >= minConfidence)
+		{
+			checkForAreaIntersections(*it,resultList,minConfidence);
+		}
 	}
-	manager->measurementExport->areaHitOutput
-		<< endl;
+	return resultList;
 }
 
 std::ostream& operator<<(std::ostream& output, TrackedVehicle &trackedVehicle)
 {
-	output << "Detections for trackID=" << trackedVehicle.trackID << ":" << endl << "\t";
+/*	output << "Detections for trackID=" << trackedVehicle.trackID << ":" << endl << "\t";
 	for(vector<unsigned int>::iterator it=trackedVehicle.areaHits.begin(); it!=trackedVehicle.areaHits.end(); it++)
 	{
 		output << *it << " ";
 	}
-	output << endl;
+	output << endl; */
 	return output;
 }

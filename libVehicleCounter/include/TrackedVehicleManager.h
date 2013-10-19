@@ -16,6 +16,7 @@ using namespace std;
 class TrackedVehicleManager
 {
 	map<unsigned int,TrackedVehicle*> trackedVehicles;
+	TrackedVehicle *getTrackedVehicleOrCreate(unsigned int trackId);
 
 public:
 	Mat *currentVerboseImg;
@@ -30,9 +31,9 @@ public:
 	MeasurementExport *measurementExport;
 	MotionVectorStorage *motionVectorStorage;	// Used only to set for new TrackedVehicles
 
-	TrackedVehicle *getTrackedVehicleOrCreate(unsigned int trackId);
 	void processTracks(unsigned int frameIdx, cvb::CvTracks *tracks);
 	void exportAreaHits(bool onStdout, bool onExportfile);
+	void collectMotionVectors();
 };
 
 #endif
