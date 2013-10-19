@@ -3,6 +3,9 @@
 #include "TrackedVehicle.h"
 #include "TrackedVehicleManager.h"
 
+#define DEFAULTCONFIDENCE 0.1
+
+
 void TrackedVehicle::registerDetection(unsigned int frameIdx, cvb::CvTrack *currentDetectingCvTrack)
 {
 	// Save coordinates, image, moments etc.
@@ -38,7 +41,7 @@ void TrackedVehicle::registerDetection(unsigned int frameIdx, cvb::CvTrack *curr
 	// Estimate detection confidence
 	//	Last location: last element of locationRegistrations
 	//	Current location: centroid
-	float confidence = 1.;
+	float confidence = DEFAULTCONFIDENCE;	// Default confidence
 	if (locationRegistrations.size() > 0)
 	{
 		Point prevLocation = (locationRegistrations.end()-1)->location;
@@ -48,8 +51,9 @@ void TrackedVehicle::registerDetection(unsigned int frameIdx, cvb::CvTrack *curr
 
 	LocationRegistration registration;
 	registration.frameIdx = frameIdx;
-	registration.confidence = confidence;	// 1.;
+	registration.confidence = confidence;
 	registration.location = centroid;
+	registration.boundingBox = rect;
 	locationRegistrations.push_back(registration);
 
 	// Show motion vector prediction cloud for next location

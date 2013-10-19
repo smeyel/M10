@@ -47,25 +47,69 @@ public:
 	{
 		Source,
 		Destination
-	};
+	}; 
+
+	double getLinearWeight(Point p1, Point p2)
+	{
+		double sqrDistance = sqrt((double)((p1.x-p2.x)*(p1.x-p2.x) + (p1.y-p2.y)*(p1.y-p2.y)));
+		return MAX( 1.0-(sqrDistance/WEIGHTMAXDISTANCE) , 0.);
+	}
+
+	float length(Point2f v)
+	{
+		return (float)sqrt(v.x*v.x + v.y*v.y);
+	}
+
+	double getDirectionSensitiveLinearWeight(Point2f otherV, float tangentialMultiplier=0.2)	// otherV: other velocity vector
+	{
+		// Calculate unity vector corresponding the direction of (this->src;this->dst)
+		Point2f currentV((float)(dst.x-src.x), (float)(dst.y-src.y));
+		float currentLen = length(currentV);
+		Point2f currentVUnity(currentV.x/currentLen, currentV.y/currentLen);
+
+		float scalarProduct = (otherV.x * currentVUnity.x) + (otherV.y * currentVUnity.y);
+
+		// Component of otherV tangential to currentV
+		Point2f otherVTangential(currentVUnity.x * scalarProduct, currentVUnity.y * scalarProduct);
+
+		// Component of otherV perpendicular to currentV
+		Point2f otherVPerpendicular(otherV.x - otherVTangential.x, otherV.y - otherVTangential.y);
+
+		Point2f tangentialDifference(otherVTangential.x-currentV.x,otherVTangential.y-currentV.y);
+		// perpendicular difference is zero.
+
+		float tangentialLength = length(tangentialDifference) * tangentialMultiplier;
+		float perpendicularLength = length(otherVPerpendicular);
+
+		double distance = length(Point2f(tangentialLength,perpendicularLength));
+		return MAX( 1.0-(distance/WEIGHTMAXDISTANCE) , 0.);
+	}
 
 	double getWeight(Point p, SourceOrDestination srcOrDest)
 	{
 		Point p2 = (srcOrDest == Source ? src : dst);
-		double sqrDistance = sqrt((double)((p.x-p2.x)*(p.x-p2.x) + (p.y-p2.y)*(p.y-p2.y)));
-		double linearTerm = MAX( 1.0-(sqrDistance/WEIGHTMAXDISTANCE) , 0.);
-//		double reciprocalTerm = (sqrDistance > 1 ? 1.0 / sqrDistance : 1);
-		return linearTerm;
+		return getLinearWeight(p,p2);
 	}
 
 	double getWeight(Point p1, Point p2)
 	{
-		double sqrDistance1 = sqrt((double)((src.x-p1.x)*(src.x-p1.x) + (src.y-p1.y)*(src.y-p1.y)));
-		double sqrDistance2 = sqrt((double)((dst.x-p2.x)*(dst.x-p2.x) + (dst.y-p2.y)*(dst.y-p2.y)));
-		double linearTerm1 = MAX( 1.0-(sqrDistance1/WEIGHTMAXDISTANCE) , 0.);
-		double linearTerm2 = MAX( 1.0-(sqrDistance2/WEIGHTMAXDISTANCE) , 0.);
-//		double reciprocalTerm = (sqrDistance > 1 ? 1.0 / sqrDistance : 1);
+		double linearTerm1 = getLinearWeight(src,p1);
+		double linearTerm2 = getLinearWeight(dst,p2);
 		return linearTerm1 * linearTerm2;
+	}
+
+	double getDirectionSensitiveWeight(Point otherSrc, Point otherDst)
+	{
+		// Weight of source point differences
+		double srcWeight = getWeight(otherSrc,MotionVector::SourceOrDestination::Source);
+
+		// Weight of speed vector differences
+		Point2f otherV(otherDst.x-otherSrc.x,otherDst.y-otherSrc.y);
+		double dstWeight = getDirectionSensitiveLinearWeight(otherV);
+
+		double weight = srcWeight * dstWeight;
+
+		return weight;
 	}
 
 	void save(FileStorage *fs)
@@ -81,7 +125,6 @@ public:
 		dst = Point(dstNode[0],dstNode[1]);
 	}
 };
-
 
 class MotionVectorStorage
 {
@@ -100,10 +143,7 @@ public:
 		double maxWeight = 0.;
 		for(vector<MotionVector *>::iterator it=motionVectors.begin(); it!=motionVectors.end(); it++)
 		{
-/*			double prevLocationWeight = (*it)->getWeight(prevLocation,MotionVector::SourceOrDestination::Source);
-			double currentLocationWeight = (*it)->getWeight(currentLocation,MotionVector::SourceOrDestination::Destination);
-			double weight = prevLocationWeight * currentLocationWeight;*/
-			double weight = (*it)->getWeight(prevLocation,currentLocation);
+			double weight = (*it)->getDirectionSensitiveWeight(prevLocation,currentLocation);
 
 			if (weight > maxWeight && weight<1.)	// Exact match may be the outlier itself!
 			{
