@@ -14,7 +14,7 @@ using namespace std;
 #  define MAX(a,b)  ((a) < (b) ? (b) : (a))
 #endif
 
-#define WEIGHTMAXDISTANCE	30.
+#define WEIGHTMAXDISTANCE	20.
 
 class MotionVector
 {
@@ -144,6 +144,7 @@ public:
 		for(vector<MotionVector *>::iterator it=motionVectors.begin(); it!=motionVectors.end(); it++)
 		{
 			double weight = (*it)->getDirectionSensitiveWeight(prevLocation,currentLocation);
+			//double weight = (*it)->getWeight(prevLocation,currentLocation);
 
 			if (weight > maxWeight && weight<1.)	// Exact match may be the outlier itself!
 			{

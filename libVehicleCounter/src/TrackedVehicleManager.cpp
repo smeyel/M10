@@ -33,11 +33,11 @@ void TrackedVehicleManager::exportAreaHits(bool onStdout, bool onExportfile)
 	}
 }
 
-void TrackedVehicleManager::collectMotionVectors()
+void TrackedVehicleManager::collectMotionVectors(float minConfidence)
 {
 	for(map<unsigned int,TrackedVehicle*>::iterator it = trackedVehicles.begin(); it != trackedVehicles.end(); it++)
 	{
-		(*it).second->exportMotionVectors();
+		(*it).second->exportMotionVectors(minConfidence);
 	}
 }
 

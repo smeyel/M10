@@ -40,7 +40,7 @@ public:
 
 	void registerDetection(unsigned int frameIdx, cvb::CvTrack *currentDetectingCvTrack);
 
-	void exportMotionVectors();
+	void exportMotionVectors(float minConfidence=0.);
 	
 	void showPath(Mat *img);
 

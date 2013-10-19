@@ -253,11 +253,16 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 			trackedVehicleManager.collectMotionVectors();
 			trackedVehicleManager.recalculateLocationConfidences();
 			break;
+		case '1':
+			trackedVehicleManager.collectMotionVectors(0.7);
+			trackedVehicleManager.recalculateLocationConfidences();
+			break;
 		case 'M':
 			motionVectorStorage->save(configmanager.motionVectorInputFilename);
 			break;
 		case 'i':
 			motionVectorStorage->load(configmanager.motionVectorInputFilename);
+			trackedVehicleManager.recalculateLocationConfidences();
 			break;
 		default:
 			cout << "Press ESC to exit." << endl;

@@ -63,7 +63,7 @@ void TrackedVehicle::registerDetection(unsigned int frameIdx, cvb::CvTrack *curr
 	}
 }
 
-void TrackedVehicle::exportMotionVectors()
+void TrackedVehicle::exportMotionVectors(float minConfidence)
 {
 	OPENCV_ASSERT(manager->motionVectorStorage,"TrackedVehicle::exportMotionVectors","motionVectorStorage not set prior to export");
 	// use locationRegistrations
@@ -71,10 +71,12 @@ void TrackedVehicle::exportMotionVectors()
 	Point lastLocation;
 	for(vector<LocationRegistration>::iterator it=locationRegistrations.begin(); it != locationRegistrations.end(); it++)
 	{
-		if ((*it).frameIdx - lastFrameIdx == 1)
+		if ((*it).frameIdx - lastFrameIdx == 1)	// For consecutive locations only
 		{
-			// For consecutive locations only
-			manager->motionVectorStorage->addMotionVector(lastLocation,(*it).location);
+			if ((*it).confidence >= minConfidence)	// With sufficient confidence
+			{
+				manager->motionVectorStorage->addMotionVector(lastLocation,(*it).location);
+			}
 		}
 		lastLocation = (*it).location;
 		lastFrameIdx = (*it).frameIdx;
