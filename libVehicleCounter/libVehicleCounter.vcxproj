@@ -78,6 +78,7 @@
     <ClInclude Include="include\area.h" />
     <ClInclude Include="include\cvblobwrapper.h" />
     <ClInclude Include="include\MeasurementExport.h" />
+    <ClInclude Include="include\MotionVector.h" />
     <ClInclude Include="include\MotionVectorStorage.h" />
     <ClInclude Include="include\TrackedVehicle.h" />
     <ClInclude Include="include\TrackedVehicleManager.h" />
@@ -86,6 +87,8 @@
     <ClCompile Include="src\area.cpp" />
     <ClCompile Include="src\cvblobwrapper.cpp" />
     <ClCompile Include="src\MeasurementExport.cpp" />
+    <ClCompile Include="src\MotionVector.cpp" />
+    <ClCompile Include="src\MotionVectorStorage.cpp" />
     <ClCompile Include="src\TrackedVehicle.cpp" />
     <ClCompile Include="src\TrackedVehicleManager.cpp" />
   </ItemGroup>

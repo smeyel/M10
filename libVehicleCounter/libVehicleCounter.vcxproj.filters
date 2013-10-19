@@ -36,6 +36,9 @@
     <ClInclude Include="include\MotionVectorStorage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\MotionVector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\area.cpp">
@@ -51,6 +54,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\MeasurementExport.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MotionVectorStorage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MotionVector.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
