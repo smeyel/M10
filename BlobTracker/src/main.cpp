@@ -31,6 +31,7 @@
 
 #include "TrackedVehicleManager.h"
 #include "MeasurementExport.h"
+#include "VehicleSizeStorage.h"
 
 using namespace cv;
 using namespace LogConfigTime;
@@ -159,6 +160,7 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 	trackedVehicleManager.measurementExport = measurementExport;
 	MotionVectorStorage *motionVectorStorage = new MotionVectorStorage();
 	trackedVehicleManager.motionVectorStorage = motionVectorStorage;
+	trackedVehicleManager.vehicleSizeStorage = new VehicleSizeStorage();
 	
 	trackedVehicleManager.currentForegroundMask = foregroundFrame;
 	trackedVehicleManager.currentSourceImage = src;
@@ -249,7 +251,8 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 			trackedVehicleManager.exportAreaHits(true,true);
 			break;
 		case 'c':
-			motionVectorStorage->clear();
+			trackedVehicleManager.motionVectorStorage->clear();
+			trackedVehicleManager.vehicleSizeStorage->clear();
 			break;
 		case 'm':
 			trackedVehicleManager.collectMotionVectors();

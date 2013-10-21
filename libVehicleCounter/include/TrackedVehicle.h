@@ -23,6 +23,7 @@ class TrackedVehicle
 		float confidence;
 		Point location;
 		Rect boundingBox;
+		float sizeRatioToMean;
 	};
 
 	unsigned int trackID;	// May not reference CvTrack, that is removed after getting useless!

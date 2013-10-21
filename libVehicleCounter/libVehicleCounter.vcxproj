@@ -82,6 +82,7 @@
     <ClInclude Include="include\MotionVectorStorage.h" />
     <ClInclude Include="include\TrackedVehicle.h" />
     <ClInclude Include="include\TrackedVehicleManager.h" />
+    <ClInclude Include="include\VehicleSizeStorage.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\area.cpp" />
@@ -91,6 +92,7 @@
     <ClCompile Include="src\MotionVectorStorage.cpp" />
     <ClCompile Include="src\TrackedVehicle.cpp" />
     <ClCompile Include="src\TrackedVehicleManager.cpp" />
+    <ClCompile Include="src\VehicleSizeStorage.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\cvblob\cvblob.vcxproj">

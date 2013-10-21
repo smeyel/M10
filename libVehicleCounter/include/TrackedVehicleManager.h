@@ -10,6 +10,7 @@
 #include "TrackedVehicle.h"
 
 #include "MeasurementExport.h"
+#include "VehicleSizeStorage.h"
 
 using namespace std;
 
@@ -30,6 +31,7 @@ public:
 
 	MeasurementExport *measurementExport;
 	MotionVectorStorage *motionVectorStorage;	// Used only to set for new TrackedVehicles
+	VehicleSizeStorage *vehicleSizeStorage;
 
 	void processTracks(unsigned int frameIdx, cvb::CvTracks *tracks);
 	void exportAreaHits(bool onStdout, bool onExportfile);
