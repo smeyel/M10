@@ -32,7 +32,7 @@ void CvBlobWrapper::findWhiteBlobs(Mat *src, Mat *result)
     unsigned int labelNum = cvLabel(&imgSrc, labelImg, blobs);
     cvb::cvFilterByArea(blobs, minBlobArea, maxBlobArea);
     cvb::cvRenderBlobs(labelImg, blobs, &imgSrc, &imgRes, CV_BLOB_RENDER_BOUNDING_BOX);
-    cvb::cvUpdateTracks(blobs, tracks, 200., 5, 2);	// last 2 params: thDistance (200.), thInactive (5), thActive (0)
+    cvb::cvUpdateTracks(blobs, tracks, 40., 5, 2);	// last 2 params: thDistance (200.), thInactive (5), thActive (0)
     cvb::cvRenderTracks(tracks, &imgSrc, &imgRes, CV_TRACK_RENDER_ID|CV_TRACK_RENDER_BOUNDING_BOX);
 
     cvReleaseImage(&labelImg);

@@ -97,3 +97,17 @@ void MotionVectorStorage::load(string filename)
 
 	fs.release();
 }
+
+float MotionVectorStorage::getMeanMotionVectorLength()
+{
+	float sumLen = 0.0F;
+	float num = 0.0F;
+
+	for(vector<MotionVector *>::iterator it=motionVectors.begin(); it!=motionVectors.end(); it++)
+	{
+		sumLen += (*it)->length();
+		num++;
+	}
+
+	return sumLen / num;
+}

@@ -31,6 +31,7 @@ void TrackedVehicleManager::exportAllDetections()
 
 void TrackedVehicleManager::collectMotionVectors(float minConfidence)
 {
+	motionVectorStorage->clear();
 	for(map<unsigned int,TrackedVehicle*>::iterator it = trackedVehicles.begin(); it != trackedVehicles.end(); it++)
 	{
 		(*it).second->feedMotionVectorsIntoMotionVectorStorage(minConfidence);
@@ -39,9 +40,12 @@ void TrackedVehicleManager::collectMotionVectors(float minConfidence)
 
 void TrackedVehicleManager::showAllPath(Mat &img)
 {
-	for(map<unsigned int,TrackedVehicle*>::iterator it = trackedVehicles.begin(); it != trackedVehicles.end(); it++)
+	if (this->showPath)
 	{
-		(*it).second->showPath(img,true,false,false);
+		for(map<unsigned int,TrackedVehicle*>::iterator it = trackedVehicles.begin(); it != trackedVehicles.end(); it++)
+		{
+			(*it).second->showPath(img,true,false,false);
+		}
 	}
 }
 
@@ -51,4 +55,9 @@ void TrackedVehicleManager::recalculateLocationConfidences()
 	{
 		(*it).second->recalculateLocationConfidences();
 	}
+}
+
+void TrackedVehicleManager::clear()
+{
+	trackedVehicles.clear();
 }

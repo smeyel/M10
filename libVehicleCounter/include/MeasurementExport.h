@@ -23,5 +23,4 @@ public:
 	string saveimage(int objectID, const char *filenamePrefix, int frameIdx, cv::Mat &image, cv::Rect &roi);
 };
 
-
 #endif

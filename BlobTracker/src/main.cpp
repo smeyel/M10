@@ -167,6 +167,7 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 	trackedVehicleManager.currentVerboseImage = result;
 	trackedVehicleManager.trackedAreas = &areas;
 	trackedVehicleManager.showLocationPredictions = configmanager.showLocationPredictions;
+	trackedVehicleManager.showPath = configmanager.showPath;
 
 	unsigned int frameIdx = 0;
 	enum stateEnum
@@ -247,34 +248,41 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 		case 'p':
 			state = (state == pause ? run : pause);
 			break;
-		case 's':
-			//trackedVehicleManager.exportAreaHits(true,true);
-			break;
+		// --------------- Data manipulation functions -----------------
 		case 'c':
 			trackedVehicleManager.motionVectorStorage->clear();
 			trackedVehicleManager.vehicleSizeStorage->clear();
+			trackedVehicleManager.clear();
+			cout << "TrackedVehicle list, MotionVectorStorage, and VehicleSizeStorage cleared." << endl;
 			break;
 		case 'm':
 			trackedVehicleManager.collectMotionVectors();
 			trackedVehicleManager.recalculateLocationConfidences();
 			break;
 		case '1':
+			// Amig nincs confidence becsles (egyszer 0 minConfidence-szel hivtuk), addig threshold-ra semmit nem fog adni.
 			trackedVehicleManager.collectMotionVectors(0.7);
 			trackedVehicleManager.recalculateLocationConfidences();
 			break;
+		// --------------- Visualization settings -----------------
 		case '2':	// override doSaveImages
 			measurementExport->doSaveImages = !measurementExport->doSaveImages;
 			cout << "doSaveImages=" << measurementExport->doSaveImages << endl;
 			break;
-/*		case 'M':
+		case 'a':	// Average motion vector length
+			cout << "Mean MotionVector.length() = " << motionVectorStorage->getMeanMotionVectorLength() << endl;
+			break;
+		// --------------- Motion Vectors persistance functions -----------------
+		case 'M':
 			motionVectorStorage->save(configmanager.motionVectorInputFilename);
-			break;*/
-		case 'e':
-			trackedVehicleManager.exportAllDetections();
 			break;
 		case 'i':
 			motionVectorStorage->load(configmanager.motionVectorInputFilename);
 			trackedVehicleManager.recalculateLocationConfidences();
+			break;
+		// --------------- Export functions -----------------
+		case 'e':
+			trackedVehicleManager.exportAllDetections();
 			break;
 		default:
 			cout << "Press ESC to exit." << endl;

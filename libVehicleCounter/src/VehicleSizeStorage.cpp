@@ -50,7 +50,7 @@ Size VehicleSizeStorage::getMeanSize(Point p)
 	resultW /= sumWeight;
 	resultH /= sumWeight;
 
-	std::cout << "Meansize: " << resultW << "/" << resultH << endl;
+	//std::cout << "Meansize: " << resultW << "/" << resultH << endl;
 
 	return Size((int)floor(resultW),(int)floor(resultH));
 }

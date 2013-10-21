@@ -31,6 +31,8 @@ public:
 	void save(string filename);
 
 	void load(string filename);
+
+	float getMeanMotionVectorLength();
 };
 
 #endif

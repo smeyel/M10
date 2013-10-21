@@ -31,9 +31,16 @@ double MotionVector::getLinearWeight(Point p1, Point p2)
 	return MAX( 1.0-(sqrDistance/WEIGHTMAXDISTANCE) , 0.);
 }
 
-float MotionVector::length(Point2f v)
+float MotionVector::length(Point2f v)	// static
 {
 	return (float)sqrt(v.x*v.x + v.y*v.y);
+}
+
+float MotionVector::length()
+{
+	float dx = this->dst.x - this->src.x;
+	float dy = this->dst.y - this->src.y;
+	return (float)sqrt(dx*dx + dy*dy);
 }
 
 double MotionVector::getDirectionSensitiveLinearWeight(Point2f otherV, float tangentialMultiplier)	// otherV: other velocity vector

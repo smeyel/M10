@@ -30,7 +30,8 @@ public:
 
 	double getLinearWeight(Point p1, Point p2);
 
-	float length(Point2f v);
+	static float length(Point2f v);
+	float length();
 
 	double getDirectionSensitiveLinearWeight(Point2f otherV, float tangentialMultiplier=0.2);	// otherV: other velocity vector
 

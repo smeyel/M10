@@ -23,7 +23,7 @@ void TrackedVehicle::registerDetection(unsigned int frameIdx, cvb::CvTrack *curr
 	{
 		Point prevLocation = (locationRegistrations.end()-1)->centroid;
 		confidence = manager->motionVectorStorage->getConfidence(prevLocation,centroid);
-		cout << "Confidence of new location: " << confidence << endl;
+		//cout << "Confidence of new location: " << confidence << endl;
 	}
 
 	// Get size information
@@ -81,6 +81,14 @@ void TrackedVehicle::registerDetection(unsigned int frameIdx, cvb::CvTrack *curr
 		Point(upperLeft.x, upperLeft.y-5),
 		Point(upperLeft.x + (int)(sizeRatio*50.0F), upperLeft.y-5),
 		color, 3);
+
+	// Show mean bounding box at this location
+	Size meanSize = manager->vehicleSizeStorage->getMeanSize(centroid);
+	Rect meanRect(
+		centroid.x - meanSize.width/2, centroid.y - meanSize.height/2, 
+		meanSize.width, meanSize.height);
+	rectangle(*manager->currentVerboseImage,meanRect,Scalar(255,100,100));
+
 }
 
 void TrackedVehicle::exportAllDetections(float minConfidence)
@@ -156,7 +164,7 @@ void TrackedVehicle::showPath(Mat &img, bool showContinuousPath, bool showBoundi
 			Size meanSize = manager->vehicleSizeStorage->getMeanSize(it->centroid);
 			Rect meanRect(
 				it->centroid.x - meanSize.width/2, it->centroid.y - meanSize.height/2, 
-				it->centroid.x - meanSize.width/2, it->centroid.y - meanSize.height/2);
+				meanSize.width, meanSize.height);
 			rectangle(img,meanRect,Scalar(100,100,100));
 		}
 	}

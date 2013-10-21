@@ -28,6 +28,7 @@ public:
 	std::vector<Area> *trackedAreas;
 
 	bool showLocationPredictions;
+	bool showPath;
 
 	MeasurementExport *measurementExport;
 	MotionVectorStorage *motionVectorStorage;	// Used only to set for new TrackedVehicles
@@ -39,6 +40,8 @@ public:
 
 	void showAllPath(Mat &img);
 	void recalculateLocationConfidences();
+
+	void clear();
 };
 
 #endif
