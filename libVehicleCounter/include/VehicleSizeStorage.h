@@ -13,13 +13,15 @@ class VehicleSizeStorage
 	vector<pair<Point, Size>> measurements;
 
 	float distance(Point p1, Point p2);
-	Size getMeanSize(Point p);
 	int getArea(Size s);
-	float getMeanArea(Point p);
 
 public:
 	void add(Point p, Size s);
 	void clear();
+
+	Size getMeanSize(Point p);
+	float getMeanArea(Point p);
+
 	// 0.0F if there is no sufficient data
 	float getAreaRatioToMean(Point currentLocation, Size currentSize);
 };

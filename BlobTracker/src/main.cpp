@@ -152,7 +152,7 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 
 	Mat openKernel = getStructuringElement(MORPH_ELLIPSE, Size(3,3));
 
-	TrackedVehicle::showVectorsAsPath = configmanager.showVectorsAsPath;
+	TrackedVehicle::fullImageSize = Size(640,480);
 
 	TrackedVehicleManager trackedVehicleManager;
 	MeasurementExport *measurementExport = new MeasurementExport(configmanager.detectionOutputFilename,
@@ -232,7 +232,7 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 		{
 			motionVectorStorage->showAllMotionVectors(result,Scalar(255,0,0));
 		}
-		trackedVehicleManager.showAllPath(result);
+		trackedVehicleManager.showAllPath(*result);
 
 		imshow("RES", *result);
 
@@ -248,7 +248,7 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 			state = (state == pause ? run : pause);
 			break;
 		case 's':
-			trackedVehicleManager.exportAreaHits(true,true);
+			//trackedVehicleManager.exportAreaHits(true,true);
 			break;
 		case 'c':
 			trackedVehicleManager.motionVectorStorage->clear();
@@ -262,8 +262,15 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 			trackedVehicleManager.collectMotionVectors(0.7);
 			trackedVehicleManager.recalculateLocationConfidences();
 			break;
-		case 'M':
+		case '2':	// override doSaveImages
+			measurementExport->doSaveImages = !measurementExport->doSaveImages;
+			cout << "doSaveImages=" << measurementExport->doSaveImages << endl;
+			break;
+/*		case 'M':
 			motionVectorStorage->save(configmanager.motionVectorInputFilename);
+			break;*/
+		case 'e':
+			trackedVehicleManager.exportAllDetections();
 			break;
 		case 'i':
 			motionVectorStorage->load(configmanager.motionVectorInputFilename);

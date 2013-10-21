@@ -21,15 +21,11 @@ void TrackedVehicleManager::processTracks(unsigned int frameIdx, cvb::CvTracks *
 	}
 }
 
-void TrackedVehicleManager::exportAreaHits(bool onStdout, bool onExportfile)
+void TrackedVehicleManager::exportAllDetections()
 {
-	cout << "List of detections:" << endl;
 	for(map<unsigned int,TrackedVehicle*>::iterator it = trackedVehicles.begin(); it != trackedVehicles.end(); it++)
 	{
-		if (onStdout)
-			cout << *(it->second);
-		if (onExportfile)
-			it->second->exportAllAreaHits();
+		it->second->exportAllDetections();
 	}
 }
 
@@ -37,15 +33,15 @@ void TrackedVehicleManager::collectMotionVectors(float minConfidence)
 {
 	for(map<unsigned int,TrackedVehicle*>::iterator it = trackedVehicles.begin(); it != trackedVehicles.end(); it++)
 	{
-		(*it).second->exportMotionVectors(minConfidence);
+		(*it).second->feedMotionVectorsIntoMotionVectorStorage(minConfidence);
 	}
 }
 
-void TrackedVehicleManager::showAllPath(Mat *img)
+void TrackedVehicleManager::showAllPath(Mat &img)
 {
 	for(map<unsigned int,TrackedVehicle*>::iterator it = trackedVehicles.begin(); it != trackedVehicles.end(); it++)
 	{
-		(*it).second->showPath(img);
+		(*it).second->showPath(img,true,false,false);
 	}
 }
 

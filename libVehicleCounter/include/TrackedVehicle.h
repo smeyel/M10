@@ -21,9 +21,11 @@ class TrackedVehicle
 	{
 		unsigned int frameIdx;
 		float confidence;
-		Point location;
+		Point centroid;
 		Rect boundingBox;
 		float sizeRatioToMean;
+		string srcImageFilename;
+		string maskImageFilename;
 	};
 
 	unsigned int trackID;	// May not reference CvTrack, that is removed after getting useless!
@@ -36,26 +38,36 @@ class TrackedVehicle
 
 	TrackedVehicleManager *manager;
 
+	// call this after all detections
+	//	Used by exportAllDetections()
+	// DEPRECATED
+	vector<unsigned int> exportAllAreaHits(float minConfidence = 0.1);
+
 public:
-	static bool showVectorsAsPath;	// false: dots only
+	static Size fullImageSize;
 
 	TrackedVehicle(unsigned int iTrackID, TrackedVehicleManager *manager);
 
 	void registerDetection(unsigned int frameIdx, cvb::CvTrack *currentDetectingCvTrack);
 
-	void exportMotionVectors(float minConfidence=0.);
+	// Called by MotionVectorStorage
+	void feedMotionVectorsIntoMotionVectorStorage(float minConfidence=0.);
 	
-	void showPath(Mat *img);
+	// Called by TrackedVehicleManager
+	void showPath(Mat &img, bool showContinuousPath, bool showBoundingBox, bool showMeanBoundingBox);
 
+	// LocationRegistration contains confidence estimated at detection time.
+	//	This function may be used to re-estimate them in a later time, based on much
+	//	more information collected after the original detection.
 	void recalculateLocationConfidences();
 
-
 	// call this after all detections
-	vector<unsigned int> exportAllAreaHits(float minConfidence = 0.1);
+	void exportAllDetections(float minConfidence = 0.1);
 
-	friend std::ostream& operator<<(std::ostream& output, TrackedVehicle &trackedVehicle);
+
+//	friend std::ostream& operator<<(std::ostream& output, TrackedVehicle &trackedVehicle);
 };
 
-std::ostream& operator<<(std::ostream& output, TrackedVehicle &trackedVehicle);
+//std::ostream& operator<<(std::ostream& output, TrackedVehicle &trackedVehicle);
 
 #endif

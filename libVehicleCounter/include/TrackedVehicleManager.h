@@ -34,10 +34,10 @@ public:
 	VehicleSizeStorage *vehicleSizeStorage;
 
 	void processTracks(unsigned int frameIdx, cvb::CvTracks *tracks);
-	void exportAreaHits(bool onStdout, bool onExportfile);
+	void exportAllDetections();
 	void collectMotionVectors(float minConfidence=0.);
 
-	void showAllPath(Mat *img);
+	void showAllPath(Mat &img);
 	void recalculateLocationConfidences();
 };
 
