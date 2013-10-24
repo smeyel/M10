@@ -284,7 +284,7 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 			break;
 		// --------------- Export functions -----------------
 		case 'e':
-			trackedVehicleManager.exportAllDetections();
+			trackedVehicleManager.exportAllDetections(0.1);	// minConfidence==0.1 to avoid self-detection of MotionVectors
 			break;
 		default:
 			cout

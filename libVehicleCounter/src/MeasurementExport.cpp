@@ -38,9 +38,9 @@ bool MeasurementExport::createDirIfNeeded(string dirname)
 	return false;
 }
 
-string MeasurementExport::saveimage(int objectID, const char *filenamePrefix, int frameIdx, cv::Mat &image, cv::Rect &roi)
+string MeasurementExport::saveimage(int objectID, const char *filenamePrefix, int frameIdx, cv::Mat &image, cv::Rect &roi, bool overrideDoSaveImagesSetting)
 {
-	if (doSaveImages)
+	if (doSaveImages || overrideDoSaveImagesSetting)
 	{
 		// Create directory if needed
 

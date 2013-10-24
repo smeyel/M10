@@ -166,6 +166,8 @@ void TrackedVehicle::exportAllDetections(float minConfidence)
 {
 	recalculateLocationConfidences();
 
+	// ------------ Area hit exports
+
 	// Go along all locations and check for area hits
 	vector<unsigned int> trackedAreaHits;
 	for(vector<LocationRegistration>::iterator it=locationRegistrations.begin(); it!=locationRegistrations.end(); it++)
@@ -175,8 +177,40 @@ void TrackedVehicle::exportAllDetections(float minConfidence)
 			checkForAreaIntersections(*it,trackedAreaHits,minConfidence);
 		}
 	}
-	// TODO: Tidy-up this list and create a final "which direction did it go to" description.
-	// TODO: Export area hits
+	// Tidy-up this list and create a final "which direction did it go to" description.
+	vector<unsigned int> cleanedTrackedAreaHits;
+	int runlength = 0;
+	int lastAreaIdx = -1;
+	for(vector<unsigned int>::iterator it=trackedAreaHits.begin(); it!=trackedAreaHits.end(); it++)
+	{
+		// Save value exactly at 2nd occurrance.
+		//	This way, last homogeneous sequence does not have to be checked after the for loop.
+		if (*it == lastAreaIdx)
+		{
+			runlength++;
+			if (runlength == 2)
+			{
+				// Save it now
+				cleanedTrackedAreaHits.push_back(*it);
+			}
+		}
+		else
+		{
+			runlength=1;
+			lastAreaIdx = *it;
+		}
+	}
+	// Export area hits
+	manager->measurementExport->areaHitOutput
+		<< this->trackID;
+	for(vector<unsigned int>::iterator it=trackedAreaHits.begin(); it!=trackedAreaHits.end(); it++)
+//	for(vector<unsigned int>::iterator it=cleanedTrackedAreaHits.begin(); it!=cleanedTrackedAreaHits.end(); it++)
+	{
+		manager->measurementExport->areaHitOutput << ";" << *it;
+	}
+	manager->measurementExport->areaHitOutput << endl;
+
+	// ------------ Registration exports
 
 	// Export all LocationRegistrations
 	for(vector<LocationRegistration>::iterator it=locationRegistrations.begin(); it!=locationRegistrations.end(); it++)
@@ -192,10 +226,12 @@ void TrackedVehicle::exportAllDetections(float minConfidence)
 			<< it->maskImageFilename << endl;
 	}
 
+	// ------------ Path export
+
 	// Draw path on image with sizeRatio information and save it
 	Mat pathImage(TrackedVehicle::fullImageSize.height,TrackedVehicle::fullImageSize.width,CV_8UC3);
 	showPath(pathImage,true,true,true);
-	manager->measurementExport->saveimage(this->trackID,"P", 0, pathImage, Rect(0,0,pathImage.cols,pathImage.rows));
+	manager->measurementExport->saveimage(this->trackID,"P", 0, pathImage, Rect(0,0,pathImage.cols,pathImage.rows),true);
 
 }
 
@@ -275,6 +311,9 @@ bool TrackedVehicle::isIntersecting(cvb::CvTrack *track, Area *area)
 
 bool TrackedVehicle::isIntersecting(LocationRegistration &registration, Area *area)
 {
+/*	return area->isPointInside(Point(
+		registration.boundingBox.x + registration.boundingBox.width/2,
+		registration.boundingBox.y + registration.boundingBox.height));	// Checked point is the bottom middle point.*/
 	return area->isPointInside(registration.centroid);
 }
 

@@ -65,7 +65,7 @@ public:
 	void recalculateLocationConfidences();
 
 	// call this after all detections
-	void exportAllDetections(float minConfidence = 0.1);
+	void exportAllDetections(float minConfidence);
 
 
 //	friend std::ostream& operator<<(std::ostream& output, TrackedVehicle &trackedVehicle);

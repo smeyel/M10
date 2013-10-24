@@ -35,7 +35,7 @@ public:
 	VehicleSizeStorage *vehicleSizeStorage;
 
 	void processTracks(unsigned int frameIdx, cvb::CvTracks *tracks);
-	void exportAllDetections();
+	void exportAllDetections(float minConfidence);
 	void collectMotionVectors(float minConfidence=0.);
 
 	void showAllPath(Mat &img);

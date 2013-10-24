@@ -21,11 +21,11 @@ void TrackedVehicleManager::processTracks(unsigned int frameIdx, cvb::CvTracks *
 	}
 }
 
-void TrackedVehicleManager::exportAllDetections()
+void TrackedVehicleManager::exportAllDetections(float minConfidence)
 {
 	for(map<unsigned int,TrackedVehicle*>::iterator it = trackedVehicles.begin(); it != trackedVehicles.end(); it++)
 	{
-		it->second->exportAllDetections();
+		it->second->exportAllDetections(minConfidence);
 	}
 }
 
