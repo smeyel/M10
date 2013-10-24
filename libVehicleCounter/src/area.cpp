@@ -82,8 +82,6 @@ void Area::load(FileNode *node)
 		(*it)[1] >> p.y;
 		points.push_back(p);
 	}
-
-	cout << "Area " << id << " saved." << endl;
 }
 
 void Area::saveAreaList(const char *filename, vector<Area> areas)

@@ -25,6 +25,7 @@ class MyConfigManager
 		areaHitOutputFilename = reader->getStringValue("output","areaHitOutputFilename");
 		imageOutputDirectory = reader->getStringValue("output","imageOutputDirectory");
 		doSaveImages = reader->getBoolValue("output","doSaveImages");
+		outputVideoName = reader->getStringValue("output","outputVideoName");
 
 		showSRC = reader->getBoolValue("show","showSRC");
 		showFORE = reader->getBoolValue("show","showFORE");
@@ -61,6 +62,7 @@ public:
 	std::string imageOutputDirectory;
 	bool doSaveImages;
 	std::string motionVectorInputFilename;
+	std::string outputVideoName;
 
 	bool showSRC;
 	bool showFORE;

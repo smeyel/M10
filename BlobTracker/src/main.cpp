@@ -169,7 +169,19 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 	trackedVehicleManager.showLocationPredictions = configmanager.showLocationPredictions;
 	trackedVehicleManager.showPath = configmanager.showPath;
 
+	// Prepare output video
+	Size outputVideoSize(2*TrackedVehicle::fullImageSize.width,TrackedVehicle::fullImageSize.height);
+	VideoWriter *outputVideo = new VideoWriter(configmanager.outputVideoName,CV_FOURCC('M','J','P','G'), 25.0, outputVideoSize, true);
+	if (!outputVideo->isOpened())
+	{
+		std::cout  << "Could not open the output video for write: " << configmanager.outputVideoName << endl;
+		return;
+	}
+	Mat imageToRecord(TrackedVehicle::fullImageSize.height,2*TrackedVehicle::fullImageSize.width,CV_8UC3);
+	Mat foregroundToRecord(480,640,CV_8UC3);	// Foreground mask (CV_8UC1) will be converted to BGR, into this Mat.
+
 	unsigned int frameIdx = 0;
+	bool isRecording = false;
 	enum stateEnum
 	{
 		run,
@@ -239,6 +251,16 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 
 		imshow("RES", *result);
 
+		if (isRecording)
+		{
+			Mat left(imageToRecord, Rect(0, 0, 640, 480)); // Copy constructor
+			cvtColor(*foregroundFrame,foregroundToRecord,CV_GRAY2BGR);
+			foregroundToRecord.copyTo(left);
+			Mat right(imageToRecord, Rect(640, 0, 640, 480)); // Copy constructor
+			result->copyTo(right);
+			*outputVideo << imageToRecord;
+		}
+
 		char k = cvWaitKey(25);
 		switch (k)
 		{
@@ -249,6 +271,10 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 			break;
 		case 'p':
 			state = (state == pause ? run : pause);
+			break;
+		case 'r':
+			isRecording = !isRecording;
+			cout << "isRecording=" << isRecording << endl;
 			break;
 		// --------------- Data manipulation functions -----------------
 		case 'c':
@@ -271,6 +297,10 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 			measurementExport->doSaveImages = !measurementExport->doSaveImages;
 			cout << "doSaveImages=" << measurementExport->doSaveImages << endl;
 			break;
+		case '3':	// toggle showPath
+			trackedVehicleManager.showPath = !trackedVehicleManager.showPath;
+			cout << "trackedVehicleManager.showPath=" << trackedVehicleManager.showPath << endl;
+			break;
 		case 'a':	// Average motion vector length
 			cout << "Mean MotionVector.length() = " << motionVectorStorage->getMeanMotionVectorLength() << endl;
 			break;
@@ -290,6 +320,7 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 			cout
 				<< "--- run control functions ---" << endl
 				<< "p	Toggle pause" << endl
+				<< "r	Toggle recording (output video)" << endl
 				<< "Esc	Exit program" << endl
 				<< "--- data manipulation functions ---" << endl
 				<< "c	Clear TrackedVehicle, MotionVector and VehicleSize storages" << endl
@@ -297,6 +328,7 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 				<< "1	Collect only confident motion vectors and re-calculate LocationRegistration confidences" << endl
 				<< "--- visualization functions ---" << endl
 				<< "2	Toggle doSaveImages (override ini)" << endl
+				<< "3	Toggle showPath" << endl
 				<< "a	Show average motion vector length" << endl
 				<< "--- MotionVector persistance functions ---" << endl
 				<< "M	Save motion vectors (filename defined by ini)" << endl
