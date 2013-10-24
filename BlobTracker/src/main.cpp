@@ -104,7 +104,7 @@ class MyBackgroundSubtractor : public BackgroundSubtractorMOG2
 	public:
 		MyBackgroundSubtractor() : BackgroundSubtractorMOG2(100,16,true) 	// Originally hist=10, thres=16
 		{
-			fTau = 0.6F;	// Not shadow if darker than background*fTau (?)
+			fTau = 0.4F;	// Not shadow if darker than background*fTau (?)
 		}
 };
 
@@ -203,6 +203,8 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 
 			// Tracking blobs
 			src->copyTo(*result);
+
+			//cv::compare(*foregroundFrame,Scalar(200),*foregroundFrame,CMP_GT);
 			cvblob->findWhiteBlobs(foregroundFrame,result);
 
 			trackedVehicleManager.processTracks(frameIdx,cvblob->getCvTracks());

@@ -43,6 +43,8 @@ class TrackedVehicle
 	// DEPRECATED
 	vector<unsigned int> exportAllAreaHits(float minConfidence = 0.1);
 
+	Rect getNarrowBoundingBox(Mat &foreground, Rect originalRect);
+
 public:
 	static Size fullImageSize;
 

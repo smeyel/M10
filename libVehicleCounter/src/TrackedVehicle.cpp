@@ -7,6 +7,52 @@
 
 Size TrackedVehicle::fullImageSize;	// static field
 
+Rect TrackedVehicle::getNarrowBoundingBox(Mat &originalForeground, Rect originalRect)
+{
+	// Get size of object (tries to ignore shadows which were useful to improve tracking accuracy)
+	cv::Mat roi = originalForeground(originalRect);	// does not copy!
+	cv::Mat foreground(originalRect.height, originalRect.width, CV_8UC1);
+	roi.copyTo(foreground);
+	cv::compare(foreground,Scalar(200),foreground,CMP_GT);	// WRN my overwrite original foreground if not copies!
+	Mat integralImage(foreground.rows, foreground.cols, CV_32SC1);
+	cv::integral(foreground,integralImage);
+	int lastRow = foreground.rows-1;
+	int lastCol = foreground.cols-1;
+	int column10percent = (foreground.rows / 10) * 255;
+	int row10percent = (foreground.cols / 10) * 255;
+	int all = integralImage.at<int>(lastRow,lastCol);
+	int column90percent = all - column10percent;
+	int row90percent = all - row10percent;
+	Point newUpperLeft = Point(0,0);
+	Point newLowerRight = Point(lastCol, lastRow);
+	int i;
+	// Shift newUpperLeft
+	for(i=0;
+		integralImage.at<int>(lastRow,i)<column10percent && i<lastCol;
+		i++);
+	newUpperLeft.x = i;
+	for(i=0;
+		integralImage.at<int>(i,lastCol)<row10percent && i<lastRow;
+		i++);
+	newUpperLeft.y = i;
+	// Shift newLowerRight
+	for(i=lastCol;
+		integralImage.at<int>(lastRow,i)>column90percent && i>0;
+		i--);
+	newLowerRight.x = i;
+	for(i=lastRow;
+		integralImage.at<int>(i,lastCol)>row90percent && i>0;
+		i--);
+	newLowerRight.y = i;
+
+	Rect narrowBoundingBox(
+		originalRect.x+newUpperLeft.x,
+		originalRect.y+newUpperLeft.y,
+		newLowerRight.x-newUpperLeft.x,
+		newLowerRight.y-newUpperLeft.y);
+	return narrowBoundingBox;
+}
+
 void TrackedVehicle::registerDetection(unsigned int frameIdx, cvb::CvTrack *currentDetectingCvTrack)
 {
 	// ---------- Calculate current results
@@ -26,6 +72,12 @@ void TrackedVehicle::registerDetection(unsigned int frameIdx, cvb::CvTrack *curr
 		//cout << "Confidence of new location: " << confidence << endl;
 	}
 
+	// Calculate real area
+	/*cv::Mat mask = (*manager->currentForegroundMask)(rect);
+	Mat maskThresholded = mask > 200;
+	int sumArea = cv::countNonZero(maskThresholded);
+	cout << "Car SumArea=" << sumArea << endl; */
+	
 	// Get size information
 	manager->vehicleSizeStorage->add(centroid,size);
 	float sizeRatio = manager->vehicleSizeStorage->getAreaRatioToMean(centroid,size);
@@ -43,6 +95,14 @@ void TrackedVehicle::registerDetection(unsigned int frameIdx, cvb::CvTrack *curr
 	{
 		foreImgRoiFilename = this->manager->measurementExport->saveimage(this->trackID,"M",frameIdx,*manager->currentForegroundMask,rect);
 	}
+
+	// Get narrow bounding box (size)
+	Rect narrowBoundingBox = getNarrowBoundingBox(*manager->currentForegroundMask,rect);
+	rectangle(*manager->currentVerboseImage,narrowBoundingBox,Scalar(255,255,255));
+	rectangle(*manager->currentForegroundMask,narrowBoundingBox,Scalar(255,255,255));
+
+
+
 
 	// Store registration data
 	LocationRegistration registration;
@@ -72,7 +132,7 @@ void TrackedVehicle::registerDetection(unsigned int frameIdx, cvb::CvTrack *curr
 	{
 		color = Scalar(0,255,0);	// Green (definitely small)
 	}
-	else if (sizeRatio>1.2)
+	else if (sizeRatio>1.4)
 	{
 		color = Scalar(0,0,255);	// Red (definitely big)
 	}
@@ -82,12 +142,22 @@ void TrackedVehicle::registerDetection(unsigned int frameIdx, cvb::CvTrack *curr
 		Point(upperLeft.x + (int)(sizeRatio*50.0F), upperLeft.y-5),
 		color, 3);
 
+
+	// Show sumArea
+/*	stringstream buffer;
+	buffer << sumArea << ", R=" << sizeRatio;
+	putText(*manager->currentVerboseImage, buffer.str(), cvPoint(upperLeft.x + 5, upperLeft.y + 5),
+		FONT_HERSHEY_DUPLEX, 0.5, Scalar(255,255,255)); */
+
+/*	cvPutText(manager->currentVerboseImage,
+		buffer.str().c_str(), cvPoint(upperLeft.x + 5, upperLeft.y + 5), &font, CV_RGB(255.,255.,255.)); */
+
 	// Show mean bounding box at this location
 	Size meanSize = manager->vehicleSizeStorage->getMeanSize(centroid);
 	Rect meanRect(
 		centroid.x - meanSize.width/2, centroid.y - meanSize.height/2, 
 		meanSize.width, meanSize.height);
-	rectangle(*manager->currentVerboseImage,meanRect,Scalar(255,100,100));
+	rectangle(*manager->currentVerboseImage,meanRect,Scalar(100,100,100));
 
 }
 
