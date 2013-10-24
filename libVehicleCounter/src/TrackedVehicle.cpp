@@ -109,7 +109,8 @@ void TrackedVehicle::registerDetection(unsigned int frameIdx, cvb::CvTrack *curr
 	registration.frameIdx = frameIdx;
 	registration.confidence = confidence;
 	registration.centroid = centroid;
-	registration.boundingBox = rect;
+	registration.bigBoundingBox = rect;
+	registration.boundingBox = narrowBoundingBox;
 	registration.sizeRatioToMean = sizeRatio;
 	registration.srcImageFilename = srcImgRoiFilename;
 	registration.maskImageFilename = foreImgRoiFilename;

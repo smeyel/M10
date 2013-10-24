@@ -22,7 +22,8 @@ class TrackedVehicle
 		unsigned int frameIdx;
 		float confidence;
 		Point centroid;
-		Rect boundingBox;
+		Rect bigBoundingBox;	// As returned by cvBlob
+		Rect boundingBox;		// Narrowed using 10% and intergal image method (TrackedVehicle::getNarrowBoundingBox)
 		float sizeRatioToMean;
 		string srcImageFilename;
 		string maskImageFilename;

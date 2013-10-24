@@ -104,7 +104,7 @@ class MyBackgroundSubtractor : public BackgroundSubtractorMOG2
 	public:
 		MyBackgroundSubtractor() : BackgroundSubtractorMOG2(100,16,true) 	// Originally hist=10, thres=16
 		{
-			fTau = 0.4F;	// Not shadow if darker than background*fTau (?)
+			fTau = 0.6F;	// Not shadow if darker than background*fTau (?)
 		}
 };
 
@@ -287,7 +287,22 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 			trackedVehicleManager.exportAllDetections();
 			break;
 		default:
-			cout << "Press ESC to exit." << endl;
+			cout
+				<< "--- run control functions ---" << endl
+				<< "p	Toggle pause" << endl
+				<< "Esc	Exit program" << endl
+				<< "--- data manipulation functions ---" << endl
+				<< "c	Clear TrackedVehicle, MotionVector and VehicleSize storages" << endl
+				<< "m	Collect motion vectors and re-calculate LocationRegistration confidences" << endl
+				<< "1	Collect only confident motion vectors and re-calculate LocationRegistration confidences" << endl
+				<< "--- visualization functions ---" << endl
+				<< "2	Toggle doSaveImages (override ini)" << endl
+				<< "a	Show average motion vector length" << endl
+				<< "--- MotionVector persistance functions ---" << endl
+				<< "M	Save motion vectors (filename defined by ini)" << endl
+				<< "i	Import motion vectors and re-calculate LocationRegistration confidences" << endl
+				<< "--- Export functions ---" << endl
+				<< "e	Export all detection data" << endl;
 			break;
 		}
 
