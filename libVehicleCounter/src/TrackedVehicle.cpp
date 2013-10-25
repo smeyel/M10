@@ -77,10 +77,22 @@ void TrackedVehicle::registerDetection(unsigned int frameIdx, cvb::CvTrack *curr
 	Mat maskThresholded = mask > 200;
 	int sumArea = cv::countNonZero(maskThresholded);
 	cout << "Car SumArea=" << sumArea << endl; */
+
+	// Calculate current speed vector
+	Point speed = Point(0,0);
+	if (locationRegistrations.size()>0)
+	{
+		vector<LocationRegistration>::iterator it = locationRegistrations.end() - 1;
+		if (it->frameIdx+1 == frameIdx)
+		{
+			speed = Point(centroid.x - it->centroid.x, centroid.y - it->centroid.y);
+		}
+	}
+//	cout << "Current speed: " << speed.x << "," << speed.y << endl;
 	
 	// Get size information
-	manager->vehicleSizeStorage->add(centroid,size);
-	float sizeRatio = manager->vehicleSizeStorage->getAreaRatioToMean(centroid,size);
+	manager->vehicleSizeStorage->add(centroid,speed,size);
+	float sizeRatio = manager->vehicleSizeStorage->getAreaRatioToMean(centroid,speed,size);
 	//cout << "CarID " << this->trackID << ": size ratio to mean: " << sizeRatio << endl;
 
 	// ---------- Store/export current results
@@ -154,7 +166,7 @@ void TrackedVehicle::registerDetection(unsigned int frameIdx, cvb::CvTrack *curr
 		buffer.str().c_str(), cvPoint(upperLeft.x + 5, upperLeft.y + 5), &font, CV_RGB(255.,255.,255.)); */
 
 	// Show mean bounding box at this location
-	Size meanSize = manager->vehicleSizeStorage->getMeanSize(centroid);
+	Size meanSize = manager->vehicleSizeStorage->getMeanSize(centroid,speed);
 	Rect meanRect(
 		centroid.x - meanSize.width/2, centroid.y - meanSize.height/2, 
 		meanSize.width, meanSize.height);

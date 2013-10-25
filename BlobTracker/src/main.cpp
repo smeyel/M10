@@ -135,16 +135,20 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 	if (configmanager.showSRC)
 	{
 		namedWindow("SRC", CV_WINDOW_AUTOSIZE);
+		cvSetMouseCallback("SRC", mouse_callback);
 	}
 	if (configmanager.showBACK)
 	{
 		namedWindow("BACK", CV_WINDOW_AUTOSIZE);
+		cvSetMouseCallback("BACK", mouse_callback);
 	}
 	if (configmanager.showFORE)
 	{
 		namedWindow("FORE", CV_WINDOW_AUTOSIZE);
+		cvSetMouseCallback("FORE", mouse_callback);
 	}
 	namedWindow("RES", CV_WINDOW_AUTOSIZE);
+	cvSetMouseCallback("RES", mouse_callback);
 
 	MyBackgroundSubtractor *backgroundSubtractor = new MyBackgroundSubtractor();
 
@@ -316,6 +320,10 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 		case 'e':
 			trackedVehicleManager.exportAllDetections(0.1);	// minConfidence==0.1 to avoid self-detection of MotionVectors
 			break;
+		// --------------- Debug functions -----------------
+		case 's':	// Show mean size
+			trackedVehicleManager.vehicleSizeStorage->verboseMeanSizeAtLocation(lastMouseClickLocation);
+			break;
 		default:
 			cout
 				<< "--- run control functions ---" << endl
@@ -334,7 +342,9 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 				<< "M	Save motion vectors (filename defined by ini)" << endl
 				<< "i	Import motion vectors and re-calculate LocationRegistration confidences" << endl
 				<< "--- Export functions ---" << endl
-				<< "e	Export all detection data" << endl;
+				<< "e	Export all detection data" << endl
+				<< "--- Debug functions ---" << endl
+				<< "s	Show mean sizes at lastMouseClickLocation" << endl;
 			break;
 		}
 
