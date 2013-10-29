@@ -52,6 +52,10 @@ class SimpleTrackingView : public TrackingViewBase
 
 	VideoWriter *outputVideo;
 
+	// Temp store used in show() to retrieve these registrations from the context
+	vector<LocationRegistration*> locationRegistrationsOfCurrentFrame;
+	void drawLocationRegistration(LocationRegistration *locReg, Mat &verbose);
+
 public:
 	MyConfigManager configmanager;
 

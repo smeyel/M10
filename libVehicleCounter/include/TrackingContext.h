@@ -60,8 +60,19 @@ public:
 
 	void showPath(TrackedVehicle &vehicle, Mat &img, bool showContinuousPath, bool showBoundingBox, bool showMeanBoundingBox);
 
-
 	void exportPathOfAllVehicle(bool showContinuousPath, bool showBoundingBox, bool showMeanBoundingBox);
+
+	void exportLocationRegistrations(int frameIdx, vector<LocationRegistration*> *targetVector, bool clearVector=true)
+	{
+		if (clearVector)
+		{
+			targetVector->clear();
+		}
+		for(map<unsigned int,TrackedVehicle*>::iterator it = trackedVehicles.begin(); it != trackedVehicles.end(); it++)
+		{
+			(*it).second->exportLocationRegistrations(frameIdx, targetVector);
+		}
+	}
 };
 
 #endif

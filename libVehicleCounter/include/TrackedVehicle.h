@@ -36,11 +36,6 @@ class TrackedVehicle
 
 	void checkForAreaIntersections(LocationRegistration &registration, vector<unsigned int> &areaHitList, float minConfidence);
 
-	// call this after all detections
-	//	Used by exportAllDetections()
-	// DEPRECATED
-	vector<unsigned int> exportAllAreaHits(float minConfidence = 0.1);
-
 	Rect getNarrowBoundingBox(Mat &foreground, Rect originalRect);
 
 public:
@@ -67,9 +62,17 @@ public:
 	// call this after all detections
 	void exportAllDetections(float minConfidence);
 
+	void exportLocationRegistrations(int frameIdx, vector<LocationRegistration*> *targetVector)
+	{
+		for(vector<LocationRegistration>::iterator it=locationRegistrations.begin(); it!=locationRegistrations.end(); it++)
+		{
+			if (it->frameIdx == frameIdx)
+			{
+				targetVector->push_back(&(*it));
+			}
+		}
+	}
 
 };
-
-//std::ostream& operator<<(std::ostream& output, TrackedVehicle &trackedVehicle);
 
 #endif

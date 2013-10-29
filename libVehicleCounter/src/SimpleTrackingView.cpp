@@ -98,6 +98,15 @@ void SimpleTrackingView::show(int frameIdx)
 		}
 	}
 
+	// ------------ Show tracking information saved by the TrackedVehicle objects
+	// Do it here and not in tracking (as verbose)
+	context->exportLocationRegistrations(frameIdx,&locationRegistrationsOfCurrentFrame);
+	for(vector<LocationRegistration*>::iterator it=locationRegistrationsOfCurrentFrame.begin();
+		it != locationRegistrationsOfCurrentFrame.end(); it++)
+	{
+		drawLocationRegistration(*it,*verbose);
+	}
+
 	//context->exportPathOfAllVehicle(result);
 	imshow("VERBOSE", *verbose);
 
@@ -112,6 +121,52 @@ void SimpleTrackingView::show(int frameIdx)
 
 		*outputVideo << imageToRecord;
 	}
+}
+
+void SimpleTrackingView::drawLocationRegistration(LocationRegistration *locReg, Mat &verbose)
+{
+	// ---------- Visualize current results
+	// Show motion vector prediction cloud for next location
+	context->motionVectorStorage.showMotionVectorPredictionCloud(locReg->centroid,&verbose, 0.5);
+
+	Point upperleft(locReg->boundingBox.x, locReg->boundingBox.y);
+
+	// Show size ratio
+	line(verbose,
+		Point(upperleft.x, upperleft.y-5),
+		Point(upperleft.x + 50, upperleft.y-7),
+		Scalar(255,0,0), 3);
+	Scalar color(0,255,255);	// yellow be default
+	if (locReg->sizeRatioToMean<0.8)
+	{
+		color = Scalar(0,255,0);	// Green (definitely small)
+	}
+	else if (locReg->sizeRatioToMean>1.4)
+	{
+		color = Scalar(0,0,255);	// Red (definitely big)
+	}
+
+	line(verbose,
+		Point(upperleft.x, upperleft.y-5),
+		Point(upperleft.x + (int)(locReg->sizeRatioToMean*50.0F), upperleft.y-5),
+		color, 3);
+
+
+	// Show sumArea
+/*	stringstream buffer;
+	buffer << sumArea << ", R=" << sizeRatio;
+	putText(*manager->currentVerboseImage, buffer.str(), cvPoint(upperLeft.x + 5, upperLeft.y + 5),
+		FONT_HERSHEY_DUPLEX, 0.5, Scalar(255,255,255)); */
+
+/*	cvPutText(manager->currentVerboseImage,
+		buffer.str().c_str(), cvPoint(upperLeft.x + 5, upperLeft.y + 5), &font, CV_RGB(255.,255.,255.)); */
+
+	// Show mean bounding box at this location
+	Size meanSize = context->sizeStorage.getMeanSize(locReg->centroid,locReg->lastSpeedVector);
+	Rect meanRect(
+		locReg->centroid.x - meanSize.width/2, locReg->centroid.y - meanSize.height/2, 
+		meanSize.width, meanSize.height);
+	rectangle(verbose,meanRect,Scalar(100,100,100));
 }
 
 void SimpleTrackingView::verboseMeanSizeAtLastClickLocation()

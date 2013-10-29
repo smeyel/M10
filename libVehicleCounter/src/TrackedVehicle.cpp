@@ -122,52 +122,11 @@ void TrackedVehicle::registerDetection(unsigned int frameIdx, cvb::CvTrack *curr
 	registration.sizeRatioToMean = sizeRatio;
 	registration.srcImageFilename = srcImgRoiFilename;
 	registration.maskImageFilename = foreImgRoiFilename;
+	registration.lastSpeedVector = speed;
 	locationRegistrations.push_back(registration);
-
-	// ---------- Visualize current results
-	// Show motion vector prediction cloud for next location
-	context->motionVectorStorage.showMotionVectorPredictionCloud(centroid,verboseImage, 0.5);
-
-	// Show size ratio
-	line(*verboseImage,
-		Point(upperLeft.x, upperLeft.y-5),
-		Point(upperLeft.x + 50, upperLeft.y-7),
-		Scalar(255,0,0), 3);
-	Scalar color(0,255,255);	// yellow be default
-	if (sizeRatio<0.8)
-	{
-		color = Scalar(0,255,0);	// Green (definitely small)
-	}
-	else if (sizeRatio>1.4)
-	{
-		color = Scalar(0,0,255);	// Red (definitely big)
-	}
-
-	line(*verboseImage,
-		Point(upperLeft.x, upperLeft.y-5),
-		Point(upperLeft.x + (int)(sizeRatio*50.0F), upperLeft.y-5),
-		color, 3);
-
-
-	// Show sumArea
-/*	stringstream buffer;
-	buffer << sumArea << ", R=" << sizeRatio;
-	putText(*manager->currentVerboseImage, buffer.str(), cvPoint(upperLeft.x + 5, upperLeft.y + 5),
-		FONT_HERSHEY_DUPLEX, 0.5, Scalar(255,255,255)); */
-
-/*	cvPutText(manager->currentVerboseImage,
-		buffer.str().c_str(), cvPoint(upperLeft.x + 5, upperLeft.y + 5), &font, CV_RGB(255.,255.,255.)); */
-
-	// Show mean bounding box at this location
-	Size meanSize = context->sizeStorage.getMeanSize(centroid,speed);
-	Rect meanRect(
-		centroid.x - meanSize.width/2, centroid.y - meanSize.height/2, 
-		meanSize.width, meanSize.height);
-	rectangle(*verboseImage,meanRect,Scalar(100,100,100));
-
 }
 
-void TrackedVehicle::exportAllDetections(float minConfidence)
+void TrackedVehicle::exportAllDetections(float minConfidence)	// areaHits and LocationRegistrations are written to context->measurementExport
 {
 	recalculateLocationConfidences();
 
@@ -288,21 +247,6 @@ TrackedVehicle::TrackedVehicle(unsigned int iTrackID, TrackingContext *context)
 	trackID = iTrackID;
 }
 
-// DEPRECATED
-vector<unsigned int> TrackedVehicle::exportAllAreaHits(float minConfidence)
-{
-	vector<unsigned int> resultList;
-	// Go along all locations and check for area hits
-	for(vector<LocationRegistration>::iterator it=locationRegistrations.begin(); it!=locationRegistrations.end(); it++)
-	{
-		if (it->confidence >= minConfidence)
-		{
-			checkForAreaIntersections(*it,resultList,minConfidence);
-		}
-	}
-	return resultList;
-}
-
 void TrackedVehicle::recalculateLocationConfidences()
 {
 	for(vector<LocationRegistration>::iterator it=locationRegistrations.begin(); it != (locationRegistrations.end()-1); it++)
@@ -312,14 +256,3 @@ void TrackedVehicle::recalculateLocationConfidences()
 		(*(it+1)).confidence = context->motionVectorStorage.getConfidence(p1,p2);
 	}
 }
-
-/*std::ostream& operator<<(std::ostream& output, TrackedVehicle &trackedVehicle)
-{
-	output << "Detections for trackID=" << trackedVehicle.trackID << ":" << endl << "\t";
-	for(vector<unsigned int>::iterator it=trackedVehicle.areaHits.begin(); it!=trackedVehicle.areaHits.end(); it++)
-	{
-		output << *it << " ";
-	}
-	output << endl;
-	return output;
-} */
