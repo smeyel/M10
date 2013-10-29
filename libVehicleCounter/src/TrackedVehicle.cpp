@@ -113,9 +113,6 @@ void TrackedVehicle::registerDetection(unsigned int frameIdx, cvb::CvTrack *curr
 	rectangle(*manager->currentVerboseImage,narrowBoundingBox,Scalar(255,255,255));
 	rectangle(*manager->currentForegroundMask,narrowBoundingBox,Scalar(255,255,255));
 
-
-
-
 	// Store registration data
 	LocationRegistration registration;
 	registration.frameIdx = frameIdx;

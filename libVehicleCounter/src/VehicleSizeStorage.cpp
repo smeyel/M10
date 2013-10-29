@@ -69,7 +69,7 @@ Size VehicleSizeStorage::getMeanSize(Point p, Point speed)
 //				cout << "getMeanSize: Idx" << debug_idx << " dir " << dirDiffDeg << " degs, NO. W=" << weight << endl;
 				continue;
 			}
-			cout << "getMeanSize: Idx" << debug_idx << " dirDiff " << dirDiffDeg << " degs, OK. W=" << weight << endl;
+//			cout << "getMeanSize: Idx" << debug_idx << " dirDiff " << dirDiffDeg << " degs, OK. W=" << weight << endl;
 		}
 
 
