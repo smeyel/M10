@@ -24,7 +24,7 @@ float VehicleSizeStorage::getDirectionAbsDifferenceDeg(Point v1, Point v2)
 {
 	float deg1 = atan2((float)v1.y,(float)v1.x);
 	float deg2 = atan2((float)v2.y,(float)v2.x);
-	float absDiffDeg = abs(deg2-deg1) / 3.142592654 * 180.0F;
+	float absDiffDeg = (float)(abs(deg2-deg1) / 3.142592654 * 180.0F);
 	return (absDiffDeg < 180.0F) ? absDiffDeg : (360.0F-absDiffDeg);
 }
 
@@ -106,7 +106,7 @@ float VehicleSizeStorage::getMeanArea(Point p, Point speed)
 float VehicleSizeStorage::getAreaRatioToMean(Point currentLocation, Point speed, Size currentSize)
 {
 	float meanArea = getMeanArea(currentLocation,speed);
-	float currentArea = getArea(currentSize);
+	float currentArea = (float)getArea(currentSize);
 	if (meanArea < 0.001F)	// Not enough sample (that returns 0.0F)
 	{
 		return 0.0F;

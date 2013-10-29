@@ -12,9 +12,6 @@ class MyConfigManager
 		SimpleIniConfigReader *SIreader = new SimpleIniConfigReader(filename);
 		ConfigReader *reader = SIreader;
 
-		loadLutAtStartup = reader->getBoolValue("main","loadLutAtStartup");
-		lutFile = reader->getStringValue("main","lutFile");
-
 		videoInputFileOverride = reader->getBoolValue("input","videoInputFileOverride");
 		videoInputFilename = reader->getStringValue("input","videoInputFilename");
 		trackedAreaInputFilename = reader->getStringValue("input","trackedAreaInputFilename");
@@ -49,8 +46,6 @@ public:
 	}
 
 	// --- Settings
-	bool loadLutAtStartup;
-	std::string lutFile;
 	bool videoInputFileOverride;
 	std::string videoInputFilename;
 

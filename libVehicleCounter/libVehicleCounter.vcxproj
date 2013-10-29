@@ -33,10 +33,12 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\props\OpenCV_Debug.props" />
+    <Import Project="..\Framework\props\Framework.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\props\OpenCV_Release.props" />
+    <Import Project="..\Framework\props\Framework.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup />
@@ -80,8 +82,12 @@
     <ClInclude Include="include\MeasurementExport.h" />
     <ClInclude Include="include\MotionVector.h" />
     <ClInclude Include="include\MotionVectorStorage.h" />
+    <ClInclude Include="include\SimpleTracker.h" />
+    <ClInclude Include="include\SimpleTrackingView.h" />
     <ClInclude Include="include\TrackedVehicle.h" />
-    <ClInclude Include="include\TrackedVehicleManager.h" />
+    <ClInclude Include="include\TrackerBase.h" />
+    <ClInclude Include="include\TrackingContext.h" />
+    <ClInclude Include="include\TrackingViewBase.h" />
     <ClInclude Include="include\VehicleSizeStorage.h" />
   </ItemGroup>
   <ItemGroup>
@@ -90,8 +96,10 @@
     <ClCompile Include="src\MeasurementExport.cpp" />
     <ClCompile Include="src\MotionVector.cpp" />
     <ClCompile Include="src\MotionVectorStorage.cpp" />
+    <ClCompile Include="src\SimpleTracker.cpp" />
+    <ClCompile Include="src\SimpleTrackingView.cpp" />
     <ClCompile Include="src\TrackedVehicle.cpp" />
-    <ClCompile Include="src\TrackedVehicleManager.cpp" />
+    <ClCompile Include="src\TrackingContext.cpp" />
     <ClCompile Include="src\VehicleSizeStorage.cpp" />
   </ItemGroup>
   <ItemGroup>

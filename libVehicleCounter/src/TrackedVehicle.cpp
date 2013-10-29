@@ -1,9 +1,9 @@
 #include <opencv2/highgui/highgui.hpp>  // for imwrite
 
 #include "TrackedVehicle.h"
-#include "TrackedVehicleManager.h"
+#include "TrackingContext.h"
 
-#define DEFAULTCONFIDENCE 0.1
+#define DEFAULTCONFIDENCE 0.1F
 
 Size TrackedVehicle::fullImageSize;	// static field
 
@@ -53,7 +53,7 @@ Rect TrackedVehicle::getNarrowBoundingBox(Mat &originalForeground, Rect original
 	return narrowBoundingBox;
 }
 
-void TrackedVehicle::registerDetection(unsigned int frameIdx, cvb::CvTrack *currentDetectingCvTrack)
+void TrackedVehicle::registerDetection(unsigned int frameIdx, cvb::CvTrack *currentDetectingCvTrack, Mat *srcImg, Mat *foregroundImg, Mat *verboseImage)
 {
 	// ---------- Calculate current results
 	Point centroid((int)currentDetectingCvTrack->centroid.x,(int)currentDetectingCvTrack->centroid.y);
@@ -68,7 +68,7 @@ void TrackedVehicle::registerDetection(unsigned int frameIdx, cvb::CvTrack *curr
 	if (locationRegistrations.size() > 0)
 	{
 		Point prevLocation = (locationRegistrations.end()-1)->centroid;
-		confidence = manager->motionVectorStorage->getConfidence(prevLocation,centroid);
+		confidence = this->context->motionVectorStorage.getConfidence(prevLocation,centroid);
 		//cout << "Confidence of new location: " << confidence << endl;
 	}
 
@@ -91,27 +91,26 @@ void TrackedVehicle::registerDetection(unsigned int frameIdx, cvb::CvTrack *curr
 //	cout << "Current speed: " << speed.x << "," << speed.y << endl;
 	
 	// Get size information
-	manager->vehicleSizeStorage->add(centroid,speed,size);
-	float sizeRatio = manager->vehicleSizeStorage->getAreaRatioToMean(centroid,speed,size);
+	context->sizeStorage.add(centroid,speed,size);
+	float sizeRatio = context->sizeStorage.getAreaRatioToMean(centroid,speed,size);
 	//cout << "CarID " << this->trackID << ": size ratio to mean: " << sizeRatio << endl;
 
 	// ---------- Store/export current results
 	// Save images
 	string srcImgRoiFilename;
 	string foreImgRoiFilename;
-	if (manager->currentSourceImage)
+	if (srcImg)
 	{
-		srcImgRoiFilename = this->manager->measurementExport->saveimage(this->trackID,"S",frameIdx,*manager->currentSourceImage,rect);
+		srcImgRoiFilename = context->measurementExport->saveimage(this->trackID,"S",frameIdx,*srcImg,rect);
 	}
-	if (manager->currentForegroundMask)
+	if (foregroundImg)
 	{
-		foreImgRoiFilename = this->manager->measurementExport->saveimage(this->trackID,"M",frameIdx,*manager->currentForegroundMask,rect);
+		foreImgRoiFilename = context->measurementExport->saveimage(this->trackID,"M",frameIdx,*foregroundImg,rect);
 	}
 
 	// Get narrow bounding box (size)
-	Rect narrowBoundingBox = getNarrowBoundingBox(*manager->currentForegroundMask,rect);
-	rectangle(*manager->currentVerboseImage,narrowBoundingBox,Scalar(255,255,255));
-	rectangle(*manager->currentForegroundMask,narrowBoundingBox,Scalar(255,255,255));
+	Rect narrowBoundingBox = getNarrowBoundingBox(*foregroundImg,rect);
+	rectangle(*verboseImage,narrowBoundingBox,Scalar(255,255,255));
 
 	// Store registration data
 	LocationRegistration registration;
@@ -127,13 +126,10 @@ void TrackedVehicle::registerDetection(unsigned int frameIdx, cvb::CvTrack *curr
 
 	// ---------- Visualize current results
 	// Show motion vector prediction cloud for next location
-	if (manager->showLocationPredictions)
-	{
-		manager->motionVectorStorage->showMotionVectorPredictionCloud(centroid,manager->currentVerboseImage, 0.5);
-	}
+	context->motionVectorStorage.showMotionVectorPredictionCloud(centroid,verboseImage, 0.5);
 
 	// Show size ratio
-	line(*manager->currentVerboseImage,
+	line(*verboseImage,
 		Point(upperLeft.x, upperLeft.y-5),
 		Point(upperLeft.x + 50, upperLeft.y-7),
 		Scalar(255,0,0), 3);
@@ -147,7 +143,7 @@ void TrackedVehicle::registerDetection(unsigned int frameIdx, cvb::CvTrack *curr
 		color = Scalar(0,0,255);	// Red (definitely big)
 	}
 
-	line(*manager->currentVerboseImage,
+	line(*verboseImage,
 		Point(upperLeft.x, upperLeft.y-5),
 		Point(upperLeft.x + (int)(sizeRatio*50.0F), upperLeft.y-5),
 		color, 3);
@@ -163,11 +159,11 @@ void TrackedVehicle::registerDetection(unsigned int frameIdx, cvb::CvTrack *curr
 		buffer.str().c_str(), cvPoint(upperLeft.x + 5, upperLeft.y + 5), &font, CV_RGB(255.,255.,255.)); */
 
 	// Show mean bounding box at this location
-	Size meanSize = manager->vehicleSizeStorage->getMeanSize(centroid,speed);
+	Size meanSize = context->sizeStorage.getMeanSize(centroid,speed);
 	Rect meanRect(
 		centroid.x - meanSize.width/2, centroid.y - meanSize.height/2, 
 		meanSize.width, meanSize.height);
-	rectangle(*manager->currentVerboseImage,meanRect,Scalar(100,100,100));
+	rectangle(*verboseImage,meanRect,Scalar(100,100,100));
 
 }
 
@@ -210,21 +206,21 @@ void TrackedVehicle::exportAllDetections(float minConfidence)
 		}
 	}
 	// Export area hits
-	manager->measurementExport->areaHitOutput
+	context->measurementExport->areaHitOutput
 		<< this->trackID;
 	for(vector<unsigned int>::iterator it=trackedAreaHits.begin(); it!=trackedAreaHits.end(); it++)
 //	for(vector<unsigned int>::iterator it=cleanedTrackedAreaHits.begin(); it!=cleanedTrackedAreaHits.end(); it++)
 	{
-		manager->measurementExport->areaHitOutput << ";" << *it;
+		context->measurementExport->areaHitOutput << ";" << *it;
 	}
-	manager->measurementExport->areaHitOutput << endl;
+	context->measurementExport->areaHitOutput << endl;
 
 	// ------------ Registration exports
 
 	// Export all LocationRegistrations
 	for(vector<LocationRegistration>::iterator it=locationRegistrations.begin(); it!=locationRegistrations.end(); it++)
 	{
-		manager->measurementExport->detectionOutput
+		context->measurementExport->detectionOutput
 			<< this->trackID << ";"
 			<< it->frameIdx << ";"
 			<< it->boundingBox.x << ";" << it->boundingBox.y << ";"
@@ -234,20 +230,12 @@ void TrackedVehicle::exportAllDetections(float minConfidence)
 			<< it->srcImageFilename << ";"
 			<< it->maskImageFilename << endl;
 	}
-
-	// ------------ Path export
-
-	// Draw path on image with sizeRatio information and save it
-	Mat pathImage(TrackedVehicle::fullImageSize.height,TrackedVehicle::fullImageSize.width,CV_8UC3);
-	showPath(pathImage,true,true,true);
-	manager->measurementExport->saveimage(this->trackID,"P", 0, pathImage, Rect(0,0,pathImage.cols,pathImage.rows),true);
-
 }
 
 
 void TrackedVehicle::feedMotionVectorsIntoMotionVectorStorage(float minConfidence)
 {
-	OPENCV_ASSERT(manager->motionVectorStorage,"TrackedVehicle::exportMotionVectors","motionVectorStorage not set prior to export");
+	OPENCV_ASSERT(context,"TrackedVehicle::feedMotionVectorsIntoMotionVectorStorage","context not set prior to export");
 	// use locationRegistrations
 	unsigned int lastFrameIdx = -2;
 	Point lastLocation;
@@ -257,58 +245,11 @@ void TrackedVehicle::feedMotionVectorsIntoMotionVectorStorage(float minConfidenc
 		{
 			if ((*it).confidence >= minConfidence)	// With sufficient confidence
 			{
-				manager->motionVectorStorage->addMotionVector(lastLocation,(*it).centroid);
+				context->motionVectorStorage.addMotionVector(lastLocation,(*it).centroid);
 			}
 		}
 		lastLocation = (*it).centroid;
 		lastFrameIdx = (*it).frameIdx;
-	}
-}
-
-void TrackedVehicle::showPath(Mat &img, bool showContinuousPath, bool showBoundingBox, bool showMeanBoundingBox)
-{
-	// Show bounding boxes (measured and mean)
-	for(vector<LocationRegistration>::iterator it=locationRegistrations.begin(); it != (locationRegistrations.end()-1); it++)
-	{
-		if (showBoundingBox)
-		{
-			rectangle(img,it->boundingBox,Scalar(255,255,255));
-		}
-
-		if (showMeanBoundingBox)
-		{
-			Size meanSize = manager->vehicleSizeStorage->getMeanSize(it->centroid);
-			Rect meanRect(
-				it->centroid.x - meanSize.width/2, it->centroid.y - meanSize.height/2, 
-				meanSize.width, meanSize.height);
-			rectangle(img,meanRect,Scalar(100,100,100));
-		}
-	}
-	
-	// Show locations
-	if (showContinuousPath)
-	{
-		for(vector<LocationRegistration>::iterator it=locationRegistrations.begin(); it != (locationRegistrations.end()-1); it++)
-		{
-			int color = (int)(255. * (*it).confidence);
-			if ( (*(it+1)).frameIdx > (*it).frameIdx+1)
-			{
-				// Not continuous detection sequence
-				continue;
-			}
-			Point p1 = (*(it)).centroid;
-			Point p2 = (*(it+1)).centroid;
-			line(img,p1,p2,Scalar(color,color,color));
-		}
-	}
-	else
-	{
-		for(vector<LocationRegistration>::iterator it=locationRegistrations.begin(); it != locationRegistrations.end(); it++)
-		{
-			int color = (int)(255. * (*it).confidence);
-			Point p = (*(it)).centroid;
-			circle(img,p,2,Scalar(color,color,color));
-		}
 	}
 }
 
@@ -329,9 +270,9 @@ bool TrackedVehicle::isIntersecting(LocationRegistration &registration, Area *ar
 void TrackedVehicle::checkForAreaIntersections(LocationRegistration &registration, vector<unsigned int> &areaHitList, float minConfidence)
 {
 	// Register area hits
-	for(unsigned int areaIdx=0; areaIdx<manager->trackedAreas->size(); areaIdx++)
+	for(unsigned int areaIdx=0; areaIdx<context->trackedAreas.size(); areaIdx++)
 	{
-		if (isIntersecting(registration, &(*manager->trackedAreas)[areaIdx]))
+		if (isIntersecting(registration, &(context->trackedAreas)[areaIdx]))
 		{
 /*			cout << (currentDetectingCvTrack->inactive ? "inactive " : "  active ");
 			cout << "CAR " << trackID << " in AREA " << (*manager->trackedAreas)[areaIdx].id << endl;*/
@@ -341,9 +282,9 @@ void TrackedVehicle::checkForAreaIntersections(LocationRegistration &registratio
 	}
 }
 
-TrackedVehicle::TrackedVehicle(unsigned int iTrackID, TrackedVehicleManager *manager)
+TrackedVehicle::TrackedVehicle(unsigned int iTrackID, TrackingContext *context)
 {
-	this->manager = manager;
+	this->context = context;
 	trackID = iTrackID;
 }
 
@@ -368,7 +309,7 @@ void TrackedVehicle::recalculateLocationConfidences()
 	{
 		Point p1 = (*(it)).centroid;
 		Point p2 = (*(it+1)).centroid;
-		(*(it+1)).confidence = manager->motionVectorStorage->getConfidence(p1,p2);
+		(*(it+1)).confidence = context->motionVectorStorage.getConfidence(p1,p2);
 	}
 }
 
