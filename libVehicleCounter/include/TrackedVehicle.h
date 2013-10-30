@@ -40,9 +40,13 @@ class TrackedVehicle
 	Rect getNarrowBoundingBox(Mat &foreground, Rect originalRect);
 
 public:
+	static const int pathID_unknown = -2;
+	static const int pathID_invalid = -1;
+
 	TrackingContext *context;
 
 	int trackID;	// May not reference CvTrack, that is removed after getting useless!
+	int pathID;		// -1: invalid, -2: unknown
 	vector<LocationRegistration> locationRegistrations;
 
 	static Size fullImageSize;
@@ -52,6 +56,7 @@ public:
 	TrackedVehicle(FileNode *node, TrackingContext *context)
 	{
 		this->context = context;
+		pathID = TrackedVehicle::pathID_unknown;
 		load(node);
 	}
 
@@ -74,6 +79,8 @@ public:
 	void save(FileStorage *fs);
 
 	void load(FileNode *node);
+
+	void validatePath(float minConfidence, vector<int> *rawAreaIdxList=NULL, vector<int> *cleanedAreaIdxList=NULL);
 
 private:
 	void loadPoint(cv::FileNode& node, cv::Point &point);

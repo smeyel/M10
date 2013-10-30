@@ -21,6 +21,7 @@ public:
 	/** Vehicles */
 	map<unsigned int,TrackedVehicle*> trackedVehicles;
 	TrackedVehicle *getTrackedVehicleOrCreate(unsigned int trackId);
+	TrackedVehicle *getTrackedVehicleOrNull(unsigned int trackId);
 	void clear();
 
 	/** Measurement export target */
@@ -69,6 +70,14 @@ public:
 		for(map<unsigned int,TrackedVehicle*>::iterator it = trackedVehicles.begin(); it != trackedVehicles.end(); it++)
 		{
 			(*it).second->exportLocationRegistrations(frameIdx, targetVector);
+		}
+	}
+
+	void validatePath(float minConfidence)
+	{
+		for(map<unsigned int,TrackedVehicle*>::iterator vehicleIterator=trackedVehicles.begin(); vehicleIterator!=trackedVehicles.end(); vehicleIterator++)
+		{
+			vehicleIterator->second->validatePath(minConfidence,NULL,NULL);
 		}
 	}
 

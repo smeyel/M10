@@ -208,6 +208,7 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 			context.exportAllDetections(0.1F);	// minConfidence==0.1 to avoid self-detection of MotionVectors
 			break;
 		case '8':
+			context.validatePath(0.1F);
 			context.saveVehicles("dummy.yml");
 			break;
 		case '9':

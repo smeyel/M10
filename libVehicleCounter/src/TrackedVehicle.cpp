@@ -128,27 +128,37 @@ void TrackedVehicle::registerDetection(int frameIdx, cvb::CvTrack *currentDetect
 	locationRegistrations.push_back(registration);
 }
 
-void TrackedVehicle::exportAllDetections(float minConfidence)	// areaHits and LocationRegistrations are written to context->measurementExport
+void TrackedVehicle::validatePath(float minConfidence, vector<int> *rawAreaIdxList, vector<int> *cleanedAreaIdxList)
 {
 	recalculateLocationConfidences();
 
-	// ------------ Area hit exports
-
-	// Go along all locations and check for area hits
+	// Vectors only used if no external one is given
 	vector<int> trackedAreaHits;
+	vector<int> cleanedTrackedAreaHits;
+	// If no optional output is defined, redirect to local vectors
+	if (rawAreaIdxList == NULL)
+	{
+		rawAreaIdxList = &trackedAreaHits;
+	}
+	if (cleanedAreaIdxList == NULL)
+	{
+		cleanedAreaIdxList = &cleanedTrackedAreaHits;
+	}
+
+	// -------------- collecting area hits
+	// Go along all locations and check for area hits
 	for(vector<LocationRegistration>::iterator it=locationRegistrations.begin(); it!=locationRegistrations.end(); it++)
 	{
 		if (it->confidence >= minConfidence)
 		{
-			checkForAreaIntersections(*it,trackedAreaHits,minConfidence);
+			checkForAreaIntersections(*it,*rawAreaIdxList,minConfidence);
 		}
 	}
 
 	// Tidy-up this list and create a final "which direction did it go to" description.
-	vector<int> cleanedTrackedAreaHits;
 	int runlength = 0;
 	int lastAreaIdx = -1;
-	for(vector<int>::iterator it=trackedAreaHits.begin(); it!=trackedAreaHits.end(); it++)
+	for(vector<int>::iterator it=rawAreaIdxList->begin(); it!=rawAreaIdxList->end(); it++)
 	{
 		// Save value exactly at 2nd occurrance.
 		//	This way, last homogeneous sequence does not have to be checked after the for loop.
@@ -158,7 +168,7 @@ void TrackedVehicle::exportAllDetections(float minConfidence)	// areaHits and Lo
 			if (runlength == 2)
 			{
 				// Save it now
-				cleanedTrackedAreaHits.push_back(*it);
+				cleanedAreaIdxList->push_back(*it);
 			}
 		}
 		else
@@ -168,14 +178,26 @@ void TrackedVehicle::exportAllDetections(float minConfidence)	// areaHits and Lo
 		}
 	}
 
+	// -------- post-processing
+	this->pathID = context->pathValidator.getPathIdIfValid(*cleanedAreaIdxList);
+}
+
+void TrackedVehicle::exportAllDetections(float minConfidence)	// areaHits and LocationRegistrations are written to context->measurementExport
+{
+	recalculateLocationConfidences();
+
+	// ------------ Area hit exports
+	vector<int> trackedAreaHits;
+	vector<int> cleanedTrackedAreaHits;
+	validatePath(minConfidence, &trackedAreaHits, &cleanedTrackedAreaHits);
+
 	// Export area hits (raw hit data, not the cleaned one)
 	context->measurementExport->areaHitOutput
 		<< this->trackID;
 
-	int id = context->pathValidator.getPathIdIfValid(cleanedTrackedAreaHits);
-	if (id != -1)
+	if (this->pathID != -1)
 	{
-		context->measurementExport->areaHitOutput << " PathID=" << id << " ";
+		context->measurementExport->areaHitOutput << " PathID=" << this->pathID << " ";
 	}
 	else
 	{
@@ -259,6 +281,7 @@ void TrackedVehicle::checkForAreaIntersections(LocationRegistration &registratio
 TrackedVehicle::TrackedVehicle(int iTrackID, TrackingContext *context)
 {
 	this->context = context;
+	pathID = TrackedVehicle::pathID_unknown;
 	trackID = iTrackID;
 }
 
@@ -285,10 +308,9 @@ void TrackedVehicle::exportLocationRegistrations(int frameIdx, vector<LocationRe
 
 void TrackedVehicle::save(FileStorage *fs)
 {
-//	ostringstream oss;
-//	oss << trackID;
 	*fs << "{";
-	*fs	<< "trackID" << trackID; //oss.str();
+	*fs	<< "trackID" << trackID;
+	*fs	<< "pathID" << pathID;
 	*fs	<< "locationRegistrations" << "[";
 	for(unsigned int idx=0; idx<locationRegistrations.size(); idx++)
 	{
@@ -313,6 +335,7 @@ void TrackedVehicle::save(FileStorage *fs)
 void TrackedVehicle::load(FileNode *node)
 {
 	(*node)["trackID"] >> trackID;
+	(*node)["pathID"] >> pathID;
 
 	FileNode pointFileNodes = (*node)["locationRegistrations"];
 	FileNodeIterator it = pointFileNodes.begin();

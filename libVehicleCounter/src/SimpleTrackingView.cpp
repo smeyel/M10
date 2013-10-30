@@ -156,8 +156,6 @@ void SimpleTrackingView::drawLocationRegistration(LocationRegistration *locReg, 
 			color, 3);
 	}
 
-
-
 	// Show sumArea
 /*	stringstream buffer;
 	buffer << sumArea << ", R=" << sizeRatio;
@@ -178,6 +176,21 @@ void SimpleTrackingView::drawLocationRegistration(LocationRegistration *locReg, 
 	}
 
 	Scalar color = Scalar(255,255,255);
+	// Check validation status
+	TrackedVehicle *trackedVehicle = context->getTrackedVehicleOrNull(locReg->trackID);
+	switch (trackedVehicle->pathID)
+	{
+	case TrackedVehicle::pathID_invalid:
+		color = Scalar(0,0,255);
+		break;
+	case TrackedVehicle::pathID_unknown:
+		color = Scalar(255,255,255);
+		break;
+	default:	// Valid pathID
+		color = Scalar(0,255,0);	
+		break;
+	}
+
 	// Show detection rectangle
 	if (configmanager.showBoundingBox)
 	{

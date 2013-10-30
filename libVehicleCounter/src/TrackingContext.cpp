@@ -10,6 +10,14 @@ TrackedVehicle *TrackingContext::getTrackedVehicleOrCreate(unsigned int trackId)
 	return trackedVehicles[trackId];
 }
 
+TrackedVehicle *TrackingContext::getTrackedVehicleOrNull(unsigned int trackId)
+{
+	if (trackedVehicles.count(trackId) == 0)
+	{
+		return NULL;
+	}
+	return trackedVehicles[trackId];
+}
 
 void TrackingContext::exportAllDetections(float minConfidence)
 {
