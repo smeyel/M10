@@ -41,18 +41,26 @@ bool Path::isValid(vector<int> &areaHits)
 
 	int currentPathAreaIdx = 0;
 	int currentAreaIdx = areaIdxList[currentPathAreaIdx];
+	bool currentSeenAtLeastOnce = false;	// Do not allow two jumps immediately after each other!
 
 	for(vector<int>::iterator areaHitIterator=areaHits.begin(); areaHitIterator!=areaHits.end(); areaHitIterator++)
 	{
 		if (*areaHitIterator == currentAreaIdx)
 		{
+			currentSeenAtLeastOnce = true;
 			continue;
+		}
+		if (!currentSeenAtLeastOnce)
+		{
+			// Current areaIdx not seen, cannot jump over!
+			return false;
 		}
 		// Jump to next area?
 		if (currentPathAreaIdx < areaIdxList.size()-1)
 		{
 			currentPathAreaIdx++;
 			currentAreaIdx = areaIdxList[currentPathAreaIdx];
+			currentSeenAtLeastOnce = false;
 			if (*areaHitIterator == currentAreaIdx)
 			{
 				continue;	// Next area is also next in the Path

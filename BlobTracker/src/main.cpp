@@ -209,10 +209,14 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 			break;
 		case '8':
 			context.validatePath(0.1F);
-			context.saveVehicles("dummy.yml");
+			context.saveVehicles(configmanager.registrationsFilename.c_str());
 			break;
 		case '9':
-			context.loadVehicles("dummy.yml");
+			context.loadVehicles(configmanager.registrationsFilename.c_str());
+			cout << "context.loadVehicles OK, do not forget to " << endl << "- load the MotionVectors (i) or" << endl << "- recollect them (m)!" << endl;
+			//context.recollectMotionVectors(0.0F);
+			//context.recalculateLocationConfidences();
+			//TODO: RELOAD motion vectors, vehicleMeanSizes
 			break;
 		// --------------- Debug functions -----------------
 		case 's':	// Show mean size
