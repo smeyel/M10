@@ -2,7 +2,19 @@
 pathlist:
    -
       id: 1
-      areas: [ 0, 4 ]
+      areas: [ 0, 4, 1 ]
    -
       id: 2
-      areas: [ 0, 4, 1 ]
+      areas: [ 0, 1 ]
+   -
+      id: 11
+      areas: [ 0, 4, 2, 5 ]
+   -
+      id: 12
+      areas: [ 0, 4, 5, 2 ]
+   -
+      id: 13
+      areas: [ 0, 2 ]
+   -
+      id: 14
+      areas: [ 0, 4, 2 ]

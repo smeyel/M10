@@ -141,11 +141,12 @@ void TrackedVehicle::exportAllDetections(float minConfidence)	// areaHits and Lo
 			checkForAreaIntersections(*it,trackedAreaHits,minConfidence);
 		}
 	}
+
 	// Tidy-up this list and create a final "which direction did it go to" description.
-/*	vector<unsigned int> cleanedTrackedAreaHits;
+	vector<int> cleanedTrackedAreaHits;
 	int runlength = 0;
 	int lastAreaIdx = -1;
-	for(vector<unsigned int>::iterator it=trackedAreaHits.begin(); it!=trackedAreaHits.end(); it++)
+	for(vector<int>::iterator it=trackedAreaHits.begin(); it!=trackedAreaHits.end(); it++)
 	{
 		// Save value exactly at 2nd occurrance.
 		//	This way, last homogeneous sequence does not have to be checked after the for loop.
@@ -163,27 +164,27 @@ void TrackedVehicle::exportAllDetections(float minConfidence)	// areaHits and Lo
 			runlength=1;
 			lastAreaIdx = *it;
 		}
-	} */
+	}
 
-	// Export area hits
+	// Export area hits (raw hit data, not the cleaned one)
 	context->measurementExport->areaHitOutput
 		<< this->trackID;
-	for(vector<int>::iterator it=trackedAreaHits.begin(); it!=trackedAreaHits.end(); it++)
-//	for(vector<unsigned int>::iterator it=cleanedTrackedAreaHits.begin(); it!=cleanedTrackedAreaHits.end(); it++)
-	{
-		context->measurementExport->areaHitOutput << ";" << *it;
-	}
-	// Validation
-	int id = context->pathValidator.getPathIdIfValid(trackedAreaHits);
+
+	int id = context->pathValidator.getPathIdIfValid(cleanedTrackedAreaHits);
 	if (id != -1)
 	{
-		context->measurementExport->areaHitOutput << " PathID=" << id;
+		context->measurementExport->areaHitOutput << " PathID=" << id << " ";
 	}
 	else
 	{
-		context->measurementExport->areaHitOutput << " INVALID";
+		context->measurementExport->areaHitOutput << " INVALID ";
 	}
 
+	for(vector<int>::iterator it=trackedAreaHits.begin(); it!=trackedAreaHits.end(); it++)
+	{
+		context->measurementExport->areaHitOutput << ";" << *it;
+	}
+	// Validation (using the cleaned path)
 	context->measurementExport->areaHitOutput << endl;
 
 	// ------------ Registration exports
