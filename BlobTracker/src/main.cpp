@@ -89,17 +89,18 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 	view.src = src;
 	view.verbose = verbose;
 
-	unsigned int frameIdx = 0;
+	unsigned int frameIdx = -1;
 	enum stateEnum
 	{
 		run,
 		pause,
 		turbo,
+		replay,
 		finished
 	} state = run;
 	while (state != finished)
 	{
-		if (state == run || state == turbo)
+		if (state == run || state == turbo || state == replay)
 		{
 			if (!camProxy->CaptureImage(0,src))
 			{
@@ -107,12 +108,22 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 				state = finished;
 				break;
 			}
-
+			frameIdx++;
 			context.clearBackgroundAreasInImage(*src);
+		}
 
-			src->copyTo(*verbose);
+		src->copyTo(*verbose);
+		if (state != replay)
+		{
 			tracker.processFrame(*src,frameIdx,verbose);
 		}
+
+		stringstream oss;
+		oss << "F:" << frameIdx << " ";
+		oss << (state==replay ? "REPLAY" : (state==pause ? "PAUSE" : (state==turbo?"TURBO":"")));
+		putText(*verbose,
+			oss.str().c_str(),
+			Point(20, 20), CV_FONT_HERSHEY_SIMPLEX, 0.5, Scalar(255,200,200),1,8,false);
 
 		if (state != turbo)
 		{
@@ -148,6 +159,9 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 			break;
 		case 't':
 			state = turbo;
+			break;
+		case '7':
+			state = replay;
 			break;
 		case 'v':
 			view.configmanager.recordVideo = !view.configmanager.recordVideo;
@@ -228,8 +242,6 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 				<< "s	Show mean sizes at lastMouseClickLocation" << endl;
 			break;
 		}
-
-		frameIdx++;
 	}
 }
 

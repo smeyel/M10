@@ -284,10 +284,10 @@ void TrackedVehicle::exportLocationRegistrations(int frameIdx, vector<LocationRe
 
 void TrackedVehicle::save(FileStorage *fs)
 {
-	ostringstream oss;
-	oss << trackID;
+//	ostringstream oss;
+//	oss << trackID;
 	*fs << "{";
-	*fs	<< "trackID" << oss.str();
+	*fs	<< "trackID" << trackID; //oss.str();
 	*fs	<< "locationRegistrations" << "[";
 	for(unsigned int idx=0; idx<locationRegistrations.size(); idx++)
 	{
