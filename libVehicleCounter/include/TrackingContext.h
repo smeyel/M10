@@ -11,26 +11,22 @@ class TrackingContext
 {
 
 public:
-	//std::vector<TrackedVehicle> vehicles;
 	VehicleSizeStorage sizeStorage;
 	MotionVectorStorage motionVectorStorage;
 	PathValidator pathValidator;
 
-
-	/** Measurement export target */
-	MeasurementExport *measurementExport;
-
-
+	/** Settings */
 	bool showLocationPredictions;
 
 	/** Vehicles */
 	map<unsigned int,TrackedVehicle*> trackedVehicles;
 	TrackedVehicle *getTrackedVehicleOrCreate(unsigned int trackId);
-
 	void clear();
 
+	/** Measurement export target */
+	MeasurementExport *measurementExport;
 
-	/** Tracked areas */
+	/** Tracked areas, background areas */
 	std::vector<Area> trackedAreas;
 	void loadTrackedAreas(string filename)
 	{
@@ -49,7 +45,6 @@ public:
 			backgroundAreas[i].draw(&img,Scalar(30,30,30),true);
 		}
 	}
-
 
 	/** Data export functions */
 	void exportAllDetections(float minConfidence);
@@ -76,6 +71,9 @@ public:
 			(*it).second->exportLocationRegistrations(frameIdx, targetVector);
 		}
 	}
+
+	void saveVehicles(const char *filename);
+	void loadVehicles(const char *filename);
 };
 
 #endif

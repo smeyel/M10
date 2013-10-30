@@ -15,7 +15,7 @@ class TrackingContext;	// Against circular header includes.
 
 struct LocationRegistration
 {
-	unsigned int frameIdx;
+	int frameIdx;
 	float confidence;
 	Point centroid;
 	Rect bigBoundingBox;	// As returned by cvBlob
@@ -24,7 +24,7 @@ struct LocationRegistration
 	string srcImageFilename;
 	string maskImageFilename;
 	Point lastSpeedVector;	// Speed vector from the previous location if there was a detection. Otherwise, 0;0.
-	int areaHitIdx;	// ID of the hit area (now assuming non-overlapping areas)
+	int areaHitIdx;	// ID of the hit area (now assuming non-overlapping areas), -2 means not checked yet
 };
 
 /** For every timeframe: TrackID, location, visual properties (size etc for clustering), intersecting detection Areas
@@ -41,15 +41,21 @@ class TrackedVehicle
 public:
 	TrackingContext *context;
 
-	unsigned int trackID;	// May not reference CvTrack, that is removed after getting useless!
+	int trackID;	// May not reference CvTrack, that is removed after getting useless!
 	vector<LocationRegistration> locationRegistrations;
 
 	static Size fullImageSize;
 
-	TrackedVehicle(unsigned int iTrackID, TrackingContext *context);
+	TrackedVehicle(int iTrackID, TrackingContext *context);
+
+	TrackedVehicle(FileNode *node, TrackingContext *context)
+	{
+		this->context = context;
+		load(node);
+	}
 
 	/** Returns currently created LocationRegistration */
-	void registerDetection(unsigned int frameIdx, cvb::CvTrack *currentDetectingCvTrack, Mat *srcImg, Mat *foregroundImg, Mat *verboseImage);
+	void registerDetection(int frameIdx, cvb::CvTrack *currentDetectingCvTrack, Mat *srcImg, Mat *foregroundImg, Mat *verboseImage);
 
 	// Called by MotionVectorStorage
 	void feedMotionVectorsIntoMotionVectorStorage(float minConfidence=0.);
@@ -62,17 +68,17 @@ public:
 	// call this after all detections
 	void exportAllDetections(float minConfidence);
 
-	void exportLocationRegistrations(int frameIdx, vector<LocationRegistration*> *targetVector)
-	{
-		for(vector<LocationRegistration>::iterator it=locationRegistrations.begin(); it!=locationRegistrations.end(); it++)
-		{
-			if (it->frameIdx == frameIdx)
-			{
-				targetVector->push_back(&(*it));
-			}
-		}
-	}
+	void exportLocationRegistrations(int frameIdx, vector<LocationRegistration*> *targetVector);
 
+	void save(FileStorage *fs);
+
+	void load(FileNode *node);
+
+private:
+	void loadPoint(cv::FileNode& node, cv::Point &point);
+	void loadRect(cv::FileNode& node, cv::Rect &rect);
 };
+
+//cv::FileNode& operator>>(cv::FileNode& node, cv::Point &point);
 
 #endif

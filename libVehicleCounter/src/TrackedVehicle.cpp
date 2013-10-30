@@ -53,7 +53,7 @@ Rect TrackedVehicle::getNarrowBoundingBox(Mat &originalForeground, Rect original
 	return narrowBoundingBox;
 }
 
-void TrackedVehicle::registerDetection(unsigned int frameIdx, cvb::CvTrack *currentDetectingCvTrack, Mat *srcImg, Mat *foregroundImg, Mat *verboseImage)
+void TrackedVehicle::registerDetection(int frameIdx, cvb::CvTrack *currentDetectingCvTrack, Mat *srcImg, Mat *foregroundImg, Mat *verboseImage)
 {
 	// ---------- Calculate current results
 	Point centroid((int)currentDetectingCvTrack->centroid.x,(int)currentDetectingCvTrack->centroid.y);
@@ -123,6 +123,7 @@ void TrackedVehicle::registerDetection(unsigned int frameIdx, cvb::CvTrack *curr
 	registration.srcImageFilename = srcImgRoiFilename;
 	registration.maskImageFilename = foreImgRoiFilename;
 	registration.lastSpeedVector = speed;
+	registration.areaHitIdx = -2;	// Not checked yet...
 	locationRegistrations.push_back(registration);
 }
 
@@ -254,7 +255,7 @@ void TrackedVehicle::checkForAreaIntersections(LocationRegistration &registratio
 	}
 }
 
-TrackedVehicle::TrackedVehicle(unsigned int iTrackID, TrackingContext *context)
+TrackedVehicle::TrackedVehicle(int iTrackID, TrackingContext *context)
 {
 	this->context = context;
 	trackID = iTrackID;
@@ -269,3 +270,92 @@ void TrackedVehicle::recalculateLocationConfidences()
 		(*(it+1)).confidence = context->motionVectorStorage.getConfidence(p1,p2);
 	}
 }
+
+void TrackedVehicle::exportLocationRegistrations(int frameIdx, vector<LocationRegistration*> *targetVector)
+{
+	for(vector<LocationRegistration>::iterator it=locationRegistrations.begin(); it!=locationRegistrations.end(); it++)
+	{
+		if (it->frameIdx == frameIdx)
+		{
+			targetVector->push_back(&(*it));
+		}
+	}
+}
+
+void TrackedVehicle::save(FileStorage *fs)
+{
+	ostringstream oss;
+	oss << trackID;
+	*fs << "{";
+	*fs	<< "trackID" << oss.str();
+	*fs	<< "locationRegistrations" << "[";
+	for(unsigned int idx=0; idx<locationRegistrations.size(); idx++)
+	{
+		*fs << "{:"
+			<< "frameIdx" << locationRegistrations[idx].frameIdx
+			<< "confidence" << locationRegistrations[idx].confidence
+			<< "centroid" << locationRegistrations[idx].centroid
+			<< "bigBoundingBox" << locationRegistrations[idx].bigBoundingBox
+			<< "boundingBox" << locationRegistrations[idx].boundingBox
+			<< "sizeRatioToMean" << locationRegistrations[idx].sizeRatioToMean
+			<< "srcImageFilename" << locationRegistrations[idx].srcImageFilename
+			<< "maskImageFilename" << locationRegistrations[idx].maskImageFilename
+			<< "lastSpeedVector" << locationRegistrations[idx].lastSpeedVector
+			<< "areaHitIdx" << locationRegistrations[idx].areaHitIdx
+			<< "}";
+	}
+	*fs << "]"
+		<< "}";
+}
+
+void TrackedVehicle::load(FileNode *node)
+{
+	(*node)["trackID"] >> trackID;
+
+	FileNode pointFileNodes = (*node)["locationRegistrations"];
+	FileNodeIterator it = pointFileNodes.begin();
+	FileNodeIterator it_end = pointFileNodes.end();
+
+	locationRegistrations.clear();
+	for( ; it != it_end; ++it)
+	{
+		LocationRegistration lr;
+		(*it)["frameIdx"] >> lr.frameIdx;
+		(*it)["confidence"] >> lr.confidence;
+		loadPoint((*it)["centroid"],lr.centroid);
+		loadRect((*it)["bigBoundingBox"],lr.bigBoundingBox);
+		loadRect((*it)["boundingBox"],lr.boundingBox);
+		
+/*		(*it)["centroid"] >> lr.centroid;
+		(*it)["bigBoundingBox"] >> lr.bigBoundingBox;
+		(*it)["boundingBox"] >> lr.boundingBox;*/
+		(*it)["sizeRatioToMean"] >> lr.sizeRatioToMean;
+		(*it)["srcImageFilename"] >> lr.srcImageFilename;
+		(*it)["maskImageFilename"] >> lr.maskImageFilename;
+//		(*it)["lastSpeedVector"] >> lr.lastSpeedVector;
+		loadPoint((*it)["lastSpeedVector"],lr.lastSpeedVector);
+		(*it)["areaHitIdx"] >> lr.areaHitIdx;
+		locationRegistrations.push_back(lr);
+	}
+}
+
+void TrackedVehicle::loadPoint(cv::FileNode& node, cv::Point &point)
+{
+	node[0] >> point.x;
+	node[1] >> point.y;
+}
+
+void TrackedVehicle::loadRect(cv::FileNode& node, cv::Rect &rect)
+{
+	node[0] >> rect.x;
+	node[1] >> rect.y;
+	node[2] >> rect.width;
+	node[3] >> rect.height;
+}
+
+/*cv::FileNode& operator>>(cv::FileNode& node, cv::Point &point)
+{
+	node[0] >> point.x;
+	node[1] >> point.y;
+	return node;
+}*/

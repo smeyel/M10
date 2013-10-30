@@ -39,6 +39,10 @@ void TrackingContext::recalculateLocationConfidences()
 
 void TrackingContext::clear()
 {
+	for(map<unsigned int,TrackedVehicle*>::iterator vehicleIterator=trackedVehicles.begin(); vehicleIterator!=trackedVehicles.end(); vehicleIterator++)
+	{
+		delete vehicleIterator->second;
+	}
 	trackedVehicles.clear();
 }
 
@@ -100,4 +104,40 @@ void TrackingContext::showPath(TrackedVehicle &vehicle, Mat &img, bool showConti
 			circle(img,p,2,Scalar(color,color,color));
 		}
 	}
+}
+
+void TrackingContext::saveVehicles(const char *filename)
+{
+	FileStorage fs(filename,FileStorage::WRITE);
+
+	fs << "trackedvehicles" << "[";
+	for(map<unsigned int,TrackedVehicle*>::iterator vehicleIterator=trackedVehicles.begin(); vehicleIterator!=trackedVehicles.end(); vehicleIterator++)
+	{
+		vehicleIterator->second->save(&fs);
+	}
+
+	fs << "]";
+	fs.release();
+}
+
+void TrackingContext::loadVehicles(const char *filename)
+{
+	clear();
+
+	FileStorage fs(filename,FileStorage::READ);
+	ostringstream oss;
+
+	FileNode vehicleNode = fs["trackedvehicles"];
+	cout << "Loading trackedvehicles (size=" << vehicleNode.size() << ")" << endl;
+
+	FileNodeIterator it = vehicleNode.begin();
+	FileNodeIterator it_end = vehicleNode.end();
+
+	for( ; it != it_end; ++it)
+	{
+		TrackedVehicle *trackedVehicle = new TrackedVehicle(&(*it), this);
+		trackedVehicles.insert(std::make_pair(trackedVehicle->trackID, trackedVehicle));
+	}
+
+	fs.release();
 }
