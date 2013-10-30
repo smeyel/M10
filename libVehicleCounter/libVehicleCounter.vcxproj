@@ -82,6 +82,7 @@
     <ClInclude Include="include\MeasurementExport.h" />
     <ClInclude Include="include\MotionVector.h" />
     <ClInclude Include="include\MotionVectorStorage.h" />
+    <ClInclude Include="include\PathValidator.h" />
     <ClInclude Include="include\SimpleTracker.h" />
     <ClInclude Include="include\SimpleTrackingView.h" />
     <ClInclude Include="include\TrackedVehicle.h" />

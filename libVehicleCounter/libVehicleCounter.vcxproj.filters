@@ -54,6 +54,9 @@
     <ClInclude Include="include\SimpleTracker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\PathValidator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\area.cpp">

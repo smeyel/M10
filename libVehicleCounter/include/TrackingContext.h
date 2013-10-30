@@ -5,6 +5,7 @@
 #include "TrackedVehicle.h"
 #include "VehicleSizeStorage.h"
 #include "MotionVectorStorage.h"
+#include "PathValidator.h"
 
 class TrackingContext
 {
@@ -13,6 +14,8 @@ public:
 	//std::vector<TrackedVehicle> vehicles;
 	VehicleSizeStorage sizeStorage;
 	MotionVectorStorage motionVectorStorage;
+	PathValidator pathValidator;
+
 
 	/** Measurement export target */
 	MeasurementExport *measurementExport;

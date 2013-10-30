@@ -34,7 +34,7 @@ class TrackedVehicle
 	bool isIntersecting(cvb::CvTrack *track, Area *area);
 	bool isIntersecting(LocationRegistration &registration, Area *area);
 
-	void checkForAreaIntersections(LocationRegistration &registration, vector<unsigned int> &areaHitList, float minConfidence);
+	void checkForAreaIntersections(LocationRegistration &registration, vector<int> &areaHitList, float minConfidence);
 
 	Rect getNarrowBoundingBox(Mat &foreground, Rect originalRect);
 

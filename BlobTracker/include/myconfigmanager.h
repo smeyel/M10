@@ -17,6 +17,7 @@ class MyConfigManager
 		trackedAreaInputFilename = reader->getStringValue("input","trackedAreaInputFilename");
 		backgroundAreaInputFilename = reader->getStringValue("input","backgroundAreaInputFilename");
 		motionVectorInputFilename = reader->getStringValue("input","motionVectorInputFilename");
+		validPathInputFilename = reader->getStringValue("input","validPathInputFilename");
 
 		detectionOutputFilename = reader->getStringValue("output","detectionOutputFilename");
 		areaHitOutputFilename = reader->getStringValue("output","areaHitOutputFilename");
@@ -57,6 +58,7 @@ public:
 	std::string imageOutputDirectory;
 	bool doSaveImages;
 	std::string motionVectorInputFilename;
+	std::string validPathInputFilename;
 	std::string outputVideoName;
 
 	bool showSRC;

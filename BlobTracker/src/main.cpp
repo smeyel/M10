@@ -69,6 +69,14 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 	TrackingContext context;
 	context.loadTrackedAreas(configmanager.trackedAreaInputFilename.c_str());
 	context.loadBackgroundAreas(configmanager.backgroundAreaInputFilename.c_str());
+/*	Path newPath(5);
+	//newPath.id = 5;
+	newPath.areaIdxList.push_back(10);
+	newPath.areaIdxList.push_back(11);
+	newPath.areaIdxList.push_back(12);
+	context.pathValidator.paths.push_back(newPath);
+	context.pathValidator.savePathList(configmanager.validPathInputFilename.c_str()); */
+	context.pathValidator.loadPathList(configmanager.validPathInputFilename.c_str());
 
 	context.measurementExport = measurementExport;
 
@@ -86,11 +94,12 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 	{
 		run,
 		pause,
+		turbo,
 		finished
 	} state = run;
 	while (state != finished)
 	{
-		if (state == run)
+		if (state == run || state == turbo)
 		{
 			if (!camProxy->CaptureImage(0,src))
 			{
@@ -105,9 +114,25 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 			tracker.processFrame(*src,frameIdx,verbose);
 		}
 
-		view.show(frameIdx);
+		if (state != turbo)
+		{
+			view.show(frameIdx);
+		}
 
-		char k = cvWaitKey(25);
+		char k = -1;
+		if (state != turbo)
+		{
+			k = cvWaitKey(25);
+		}
+		else
+		{
+			if (frameIdx % 10 == 0)
+			{
+				cout << "FrameIdx: " << frameIdx << endl;
+			}
+			k = cvWaitKey(1);
+		}
+
 		switch (k)
 		{
 		case -1:	// No keypress
@@ -115,10 +140,16 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 		case 27:
 			state = finished;
 			break;
-		case 'p':
-			state = (state == pause ? run : pause);
-			break;
 		case 'r':
+			state = run;
+			break;
+		case 'p':
+			state = pause;
+			break;
+		case 't':
+			state = turbo;
+			break;
+		case 'v':
 			view.configmanager.recordVideo = !view.configmanager.recordVideo;
 			cout << "view.configmanager.recordVideo=" << view.configmanager.recordVideo << endl;
 			break;
@@ -169,8 +200,10 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 		default:
 			cout
 				<< "--- run control functions ---" << endl
-				<< "p	Toggle pause" << endl
-				<< "r	Toggle recording (output video)" << endl
+				<< "r	Run mode" << endl
+				<< "p	Pause mode" << endl
+				<< "t	Turbo mode" << endl
+				<< "v	Toggle Video recording (output video)" << endl
 				<< "Esc	Exit program" << endl
 				<< "--- data manipulation functions ---" << endl
 				<< "c	Clear TrackedVehicle, MotionVector and VehicleSize storages" << endl

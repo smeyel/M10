@@ -133,7 +133,7 @@ void TrackedVehicle::exportAllDetections(float minConfidence)	// areaHits and Lo
 	// ------------ Area hit exports
 
 	// Go along all locations and check for area hits
-	vector<unsigned int> trackedAreaHits;
+	vector<int> trackedAreaHits;
 	for(vector<LocationRegistration>::iterator it=locationRegistrations.begin(); it!=locationRegistrations.end(); it++)
 	{
 		if (it->confidence >= minConfidence)
@@ -142,7 +142,7 @@ void TrackedVehicle::exportAllDetections(float minConfidence)	// areaHits and Lo
 		}
 	}
 	// Tidy-up this list and create a final "which direction did it go to" description.
-	vector<unsigned int> cleanedTrackedAreaHits;
+/*	vector<unsigned int> cleanedTrackedAreaHits;
 	int runlength = 0;
 	int lastAreaIdx = -1;
 	for(vector<unsigned int>::iterator it=trackedAreaHits.begin(); it!=trackedAreaHits.end(); it++)
@@ -163,15 +163,27 @@ void TrackedVehicle::exportAllDetections(float minConfidence)	// areaHits and Lo
 			runlength=1;
 			lastAreaIdx = *it;
 		}
-	}
+	} */
+
 	// Export area hits
 	context->measurementExport->areaHitOutput
 		<< this->trackID;
-	for(vector<unsigned int>::iterator it=trackedAreaHits.begin(); it!=trackedAreaHits.end(); it++)
+	for(vector<int>::iterator it=trackedAreaHits.begin(); it!=trackedAreaHits.end(); it++)
 //	for(vector<unsigned int>::iterator it=cleanedTrackedAreaHits.begin(); it!=cleanedTrackedAreaHits.end(); it++)
 	{
 		context->measurementExport->areaHitOutput << ";" << *it;
 	}
+	// Validation
+	int id = context->pathValidator.getPathIdIfValid(trackedAreaHits);
+	if (id != -1)
+	{
+		context->measurementExport->areaHitOutput << " PathID=" << id;
+	}
+	else
+	{
+		context->measurementExport->areaHitOutput << " INVALID";
+	}
+
 	context->measurementExport->areaHitOutput << endl;
 
 	// ------------ Registration exports
@@ -226,7 +238,7 @@ bool TrackedVehicle::isIntersecting(LocationRegistration &registration, Area *ar
 	return area->isPointInside(registration.centroid);
 }
 
-void TrackedVehicle::checkForAreaIntersections(LocationRegistration &registration, vector<unsigned int> &areaHitList, float minConfidence)
+void TrackedVehicle::checkForAreaIntersections(LocationRegistration &registration, vector<int> &areaHitList, float minConfidence)
 {
 	// Register area hits
 	for(unsigned int areaIdx=0; areaIdx<context->trackedAreas.size(); areaIdx++)
