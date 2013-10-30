@@ -1,0 +1,29 @@
+%YAML:1.0
+pathlist:
+   -
+      id: 1
+      areas: [ 0, 4, 1 ]
+   -
+      id: 2
+      areas: [ 0, 1 ]
+   -
+      id: 12
+      areas: [ 0, 4, 5, 2 ]
+   -
+      id: 13
+      areas: [ 0, 2 ]
+   -
+      id: 14
+      areas: [ 0, 4, 2 ]
+   -
+      id: 21
+      areas: [ 2, 5, 3 ]
+   -
+      id: 31
+      areas: [ 1, 4, 2 ]
+   -
+      id: 41
+      areas: [ 2, 4, 1 ]
+   -
+      id: 42
+      areas: [ 2, 5, 4, 1 ]

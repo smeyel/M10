@@ -23,10 +23,7 @@ public:
 	~CvBlobWrapper();
 	void findWhiteBlobs(cv::Mat *src, cv::Mat *result);
 	
-	cvb::CvTracks *getCvTracks()
-	{
-		return &tracks;
-	}
+	cvb::CvTracks *getCvTracks();
 };
 
 #endif

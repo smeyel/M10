@@ -10,52 +10,24 @@
 
 #include "CameraLocalProxy.h"
 
-#include "DefaultLutColorFilter.h"
 #include "StdoutLogger.h"
 #include "FileLogger.h"
 
 #include "myconfigmanager.h"
 
-#include "ImageTransitionStat.h"
-#include "PixelPrecisionCalculator.h"
-#include "PixelScoreImageTransform.h"
-
-#include "LutCalibrationPattern.h"
-
-#include "DetectionBoundingBoxCollector.h"
-#include "SimpleBoundingBoxValidator.h"
-
-#include "cvblobwrapper.h"
-
-#include "area.h"
-
-#include "TrackedVehicleManager.h"
 #include "MeasurementExport.h"
-#include "VehicleSizeStorage.h"
+
+#include "TrackingContext.h"
+#include "SimpleTracker.h"
+#include "SimpleTrackingView.h"
 
 using namespace cv;
 using namespace LogConfigTime;
-using namespace smeyel;
 
 char *configfilename = "default.ini";
 MyConfigManager configmanager;
 CameraLocalProxy *camProxy = NULL;
 Mat *src;
-
-// Globals used by mouse event handler
-Point lastMouseClickLocation;
-//unsigned int lastLutIdx;
-//DefaultLutColorFilter *lutColorFilter;
-
-// Mouse callback to retrieve debug information at pixel locations
-void mouse_callback(int eventtype, int x, int y, int flags, void *param)
-{
-	if (eventtype == CV_EVENT_LBUTTONDOWN)
-	{
-		lastMouseClickLocation = Point(x,y);
-		cout << "Click location saved: " << x << ";" << y << endl;
-	}
-}
 
 void init_defaults(const char *overrideConfigFileName = NULL)
 {
@@ -85,112 +57,50 @@ void init_defaults(const char *overrideConfigFileName = NULL)
 	src = new Mat(480,640,CV_8UC3);
 }
 
-void drawContourAsPolygon(Mat *img, vector<Point> contour, Scalar color)
-{
-	// create a pointer to the data as an array of points (via a conversion to 
-	// a Mat() object)
-	const cv::Point *pts = (const cv::Point*) Mat(contour).data;
-	int npts = Mat(contour).rows;
-
-	//std::cout << "Number of polygon vertices: " << npts << std::endl;
-	
-	// draw the polygon 
-	//polylines(*img, &pts,&npts, 1, true, Scalar(0,255,0), 3);
-	fillPoly(*img, &pts,&npts, 1, color);
-}
-
-class MyBackgroundSubtractor : public BackgroundSubtractorMOG2
-{
-	public:
-		MyBackgroundSubtractor() : BackgroundSubtractorMOG2(100,16,true) 	// Originally hist=10, thres=16
-		{
-			fTau = 0.6F;	// Not shadow if darker than background*fTau (?)
-		}
-};
-
-
-
 void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 {
 	init_defaults(overrideConfigFileName);
 
-	std::vector<Area> areas;
-	Area::loadAreaList(configmanager.trackedAreaInputFilename.c_str(), &areas);
-
-	std::vector<Area> backgroundAreas;
-	Area::loadAreaList(configmanager.backgroundAreaInputFilename.c_str(), &backgroundAreas);
-
-	vector<cvb::CvTracks> currentTrackList;
-
-	CvBlobWrapper *cvblob = new CvBlobWrapper();
-	cvblob->minBlobArea = configmanager.minBlobArea;
-	cvblob->maxBlobArea = configmanager.maxBlobArea;
-
 	src = new Mat(480,640,CV_8UC3);
-	Mat *backgroundFrame = new Mat(480,640,CV_8UC1);
-	Mat *foregroundFrame = new Mat(480,640,CV_8UC1);
-	Mat *result = new Mat(480,640,CV_8UC3);
-	Mat *blurredSrc = new Mat(480,640,CV_8UC3);
+	Mat *verbose = new Mat(480,640,CV_8UC3);
 
-	if (configmanager.showSRC)
-	{
-		namedWindow("SRC", CV_WINDOW_AUTOSIZE);
-	}
-	if (configmanager.showBACK)
-	{
-		namedWindow("BACK", CV_WINDOW_AUTOSIZE);
-	}
-	if (configmanager.showFORE)
-	{
-		namedWindow("FORE", CV_WINDOW_AUTOSIZE);
-	}
-	namedWindow("RES", CV_WINDOW_AUTOSIZE);
+	MeasurementExport *measurementExport = new MeasurementExport(configmanager.detectionOutputFilename,configmanager.areaHitOutputFilename,configmanager.imageOutputDirectory,configmanager.doSaveImages);
 
-	MyBackgroundSubtractor *backgroundSubtractor = new MyBackgroundSubtractor();
+	TrackingContext context;
+	context.loadTrackedAreas(configmanager.trackedAreaInputFilename.c_str());
+	context.loadBackgroundAreas(configmanager.backgroundAreaInputFilename.c_str());
+/*	Path newPath(5);
+	//newPath.id = 5;
+	newPath.areaIdxList.push_back(10);
+	newPath.areaIdxList.push_back(11);
+	newPath.areaIdxList.push_back(12);
+	context.pathValidator.paths.push_back(newPath);
+	context.pathValidator.savePathList(configmanager.validPathInputFilename.c_str()); */
+	context.pathValidator.loadPathList(configmanager.validPathInputFilename.c_str());
 
-    std::vector<std::vector<cv::Point> > contours;
+	context.measurementExport = measurementExport;
 
-	Mat openKernel = getStructuringElement(MORPH_ELLIPSE, Size(3,3));
+	SimpleTracker tracker(configfilename);
+	tracker.context = &context;
 
-	TrackedVehicle::fullImageSize = Size(640,480);
+	SimpleTrackingView view(configfilename);
+	view.context = &context;
+	view.tracker = &tracker;
+	view.src = src;
+	view.verbose = verbose;
 
-	TrackedVehicleManager trackedVehicleManager;
-	MeasurementExport *measurementExport = new MeasurementExport(configmanager.detectionOutputFilename,
-		configmanager.areaHitOutputFilename, configmanager.imageOutputDirectory, configmanager.doSaveImages);
-	trackedVehicleManager.measurementExport = measurementExport;
-	MotionVectorStorage *motionVectorStorage = new MotionVectorStorage();
-	trackedVehicleManager.motionVectorStorage = motionVectorStorage;
-	trackedVehicleManager.vehicleSizeStorage = new VehicleSizeStorage();
-	
-	trackedVehicleManager.currentForegroundMask = foregroundFrame;
-	trackedVehicleManager.currentSourceImage = src;
-	trackedVehicleManager.currentVerboseImage = result;
-	trackedVehicleManager.trackedAreas = &areas;
-	trackedVehicleManager.showLocationPredictions = configmanager.showLocationPredictions;
-	trackedVehicleManager.showPath = configmanager.showPath;
-
-	// Prepare output video
-	Size outputVideoSize(2*TrackedVehicle::fullImageSize.width,TrackedVehicle::fullImageSize.height);
-	VideoWriter *outputVideo = new VideoWriter(configmanager.outputVideoName,CV_FOURCC('M','J','P','G'), 25.0, outputVideoSize, true);
-	if (!outputVideo->isOpened())
-	{
-		std::cout  << "Could not open the output video for write: " << configmanager.outputVideoName << endl;
-		return;
-	}
-	Mat imageToRecord(TrackedVehicle::fullImageSize.height,2*TrackedVehicle::fullImageSize.width,CV_8UC3);
-	Mat foregroundToRecord(480,640,CV_8UC3);	// Foreground mask (CV_8UC1) will be converted to BGR, into this Mat.
-
-	unsigned int frameIdx = 0;
-	bool isRecording = false;
+	unsigned int frameIdx = -1;
 	enum stateEnum
 	{
 		run,
 		pause,
+		turbo,
+		replay,
 		finished
 	} state = run;
 	while (state != finished)
 	{
-		if (state == run)
+		if (state == run || state == turbo || state == replay)
 		{
 			if (!camProxy->CaptureImage(0,src))
 			{
@@ -198,70 +108,42 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 				state = finished;
 				break;
 			}
+			frameIdx++;
+			context.clearBackgroundAreasInImage(*src);
+		}
 
-			for(unsigned int i=0; i<backgroundAreas.size(); i++)
+		src->copyTo(*verbose);
+		if (state != replay)
+		{
+			tracker.processFrame(*src,frameIdx,verbose);
+		}
+
+		stringstream oss;
+		oss << "F:" << frameIdx << " ";
+		oss << (state==replay ? "REPLAY" : (state==pause ? "PAUSE" : (state==turbo?"TURBO":"")));
+		putText(*verbose,
+			oss.str().c_str(),
+			Point(20, 20), CV_FONT_HERSHEY_SIMPLEX, 0.5, Scalar(255,200,200),1,8,false);
+
+		if (state != turbo)
+		{
+			view.show(frameIdx);
+		}
+
+		char k = -1;
+		if (state != turbo)
+		{
+			k = cvWaitKey(25);
+		}
+		else
+		{
+			if (frameIdx % 10 == 0)
 			{
-				backgroundAreas[i].draw(src,Scalar(30,30,30),true);
+				cout << "FrameIdx: " << frameIdx << endl;
 			}
-
-			cv::blur(*src,*blurredSrc,cv::Size(10,10));
-			src->copyTo(*blurredSrc);
-
-			backgroundSubtractor->operator()(*blurredSrc,*foregroundFrame);
-
-			morphologyEx(*foregroundFrame,*foregroundFrame,MORPH_OPEN,openKernel,Point(-1,-1),1);
-
-			morphologyEx(*foregroundFrame,*foregroundFrame,MORPH_CLOSE,openKernel,Point(-1,-1),1);
-
-			// Tracking blobs
-			src->copyTo(*result);
-
-			//cv::compare(*foregroundFrame,Scalar(200),*foregroundFrame,CMP_GT);
-			cvblob->findWhiteBlobs(foregroundFrame,result);
-
-			trackedVehicleManager.processTracks(frameIdx,cvblob->getCvTracks());
+			k = cvWaitKey(1);
 		}
 
-		if (configmanager.showFORE)
-		{
-			imshow("FORE",*foregroundFrame);
-		}
-
-		if (configmanager.showSRC)
-		{
-			imshow("SRC",*src);
-		}
-
-		if (configmanager.showBACK)
-		{
-			// Just for couriosity...
-			backgroundSubtractor->getBackgroundImage(*backgroundFrame);
-			imshow("BACK",*backgroundFrame);
-		}
-
-		for(unsigned int i=0; i<areas.size(); i++)
-		{
-			areas[i].draw(result,Scalar(0,255,0),false);
-		}
-		if (configmanager.showAllMotionVectors)
-		{
-			motionVectorStorage->showAllMotionVectors(result,Scalar(255,0,0));
-		}
-		trackedVehicleManager.showAllPath(*result);
-
-		imshow("RES", *result);
-
-		if (isRecording)
-		{
-			Mat left(imageToRecord, Rect(0, 0, 640, 480)); // Copy constructor
-			cvtColor(*foregroundFrame,foregroundToRecord,CV_GRAY2BGR);
-			foregroundToRecord.copyTo(left);
-			Mat right(imageToRecord, Rect(640, 0, 640, 480)); // Copy constructor
-			result->copyTo(right);
-			*outputVideo << imageToRecord;
-		}
-
-		char k = cvWaitKey(25);
 		switch (k)
 		{
 		case -1:	// No keypress
@@ -269,28 +151,37 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 		case 27:
 			state = finished;
 			break;
-		case 'p':
-			state = (state == pause ? run : pause);
-			break;
 		case 'r':
-			isRecording = !isRecording;
-			cout << "isRecording=" << isRecording << endl;
+			state = run;
+			break;
+		case 'p':
+			state = pause;
+			break;
+		case 't':
+			state = turbo;
+			break;
+		case '7':
+			state = replay;
+			break;
+		case 'v':
+			view.configmanager.recordVideo = !view.configmanager.recordVideo;
+			cout << "view.configmanager.recordVideo=" << view.configmanager.recordVideo << endl;
 			break;
 		// --------------- Data manipulation functions -----------------
 		case 'c':
-			trackedVehicleManager.motionVectorStorage->clear();
-			trackedVehicleManager.vehicleSizeStorage->clear();
-			trackedVehicleManager.clear();
+			context.motionVectorStorage.clear();
+			context.sizeStorage.clear();
+			context.clear();
 			cout << "TrackedVehicle list, MotionVectorStorage, and VehicleSizeStorage cleared." << endl;
 			break;
 		case 'm':
-			trackedVehicleManager.collectMotionVectors();
-			trackedVehicleManager.recalculateLocationConfidences();
+			context.recollectMotionVectors(0.0F);
+			context.recalculateLocationConfidences();
 			break;
 		case '1':
 			// Amig nincs confidence becsles (egyszer 0 minConfidence-szel hivtuk), addig threshold-ra semmit nem fog adni.
-			trackedVehicleManager.collectMotionVectors(0.7);
-			trackedVehicleManager.recalculateLocationConfidences();
+			context.recollectMotionVectors(0.7F);
+			context.recalculateLocationConfidences();
 			break;
 		// --------------- Visualization settings -----------------
 		case '2':	// override doSaveImages
@@ -298,29 +189,46 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 			cout << "doSaveImages=" << measurementExport->doSaveImages << endl;
 			break;
 		case '3':	// toggle showPath
-			trackedVehicleManager.showPath = !trackedVehicleManager.showPath;
-			cout << "trackedVehicleManager.showPath=" << trackedVehicleManager.showPath << endl;
+			view.configmanager.showPath = !view.configmanager.showPath;
+			cout << "view.configmanager.showPath=" << view.configmanager.showPath << endl;
 			break;
 		case 'a':	// Average motion vector length
-			cout << "Mean MotionVector.length() = " << motionVectorStorage->getMeanMotionVectorLength() << endl;
+			cout << "Mean MotionVector.length() = " << context.motionVectorStorage.getMeanMotionVectorLength() << endl;
 			break;
 		// --------------- Motion Vectors persistance functions -----------------
 		case 'M':
-			motionVectorStorage->save(configmanager.motionVectorInputFilename);
+			context.motionVectorStorage.save(configmanager.motionVectorInputFilename);
 			break;
 		case 'i':
-			motionVectorStorage->load(configmanager.motionVectorInputFilename);
-			trackedVehicleManager.recalculateLocationConfidences();
+			context.motionVectorStorage.load(configmanager.motionVectorInputFilename);
+			context.recalculateLocationConfidences();
 			break;
 		// --------------- Export functions -----------------
 		case 'e':
-			trackedVehicleManager.exportAllDetections(0.1);	// minConfidence==0.1 to avoid self-detection of MotionVectors
+			context.exportAllDetections(0.1F);	// minConfidence==0.1 to avoid self-detection of MotionVectors
+			break;
+		case '8':
+			context.validatePath(0.1F);
+			context.saveVehicles(configmanager.registrationsFilename.c_str());
+			break;
+		case '9':
+			context.loadVehicles(configmanager.registrationsFilename.c_str());
+			cout << "context.loadVehicles OK, do not forget to " << endl << "- load the MotionVectors (i) or" << endl << "- recollect them (m)!" << endl;
+			//context.recollectMotionVectors(0.0F);
+			//context.recalculateLocationConfidences();
+			//TODO: RELOAD motion vectors, vehicleMeanSizes
+			break;
+		// --------------- Debug functions -----------------
+		case 's':	// Show mean size
+			view.verboseMeanSizeAtLastClickLocation();
 			break;
 		default:
 			cout
 				<< "--- run control functions ---" << endl
-				<< "p	Toggle pause" << endl
-				<< "r	Toggle recording (output video)" << endl
+				<< "r	Run mode" << endl
+				<< "p	Pause mode" << endl
+				<< "t	Turbo mode" << endl
+				<< "v	Toggle Video recording (output video)" << endl
 				<< "Esc	Exit program" << endl
 				<< "--- data manipulation functions ---" << endl
 				<< "c	Clear TrackedVehicle, MotionVector and VehicleSize storages" << endl
@@ -334,11 +242,11 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 				<< "M	Save motion vectors (filename defined by ini)" << endl
 				<< "i	Import motion vectors and re-calculate LocationRegistration confidences" << endl
 				<< "--- Export functions ---" << endl
-				<< "e	Export all detection data" << endl;
+				<< "e	Export all detection data" << endl
+				<< "--- Debug functions ---" << endl
+				<< "s	Show mean sizes at lastMouseClickLocation" << endl;
 			break;
 		}
-
-		frameIdx++;
 	}
 }
 

@@ -22,10 +22,15 @@ CvBlobWrapper::~CvBlobWrapper()
 	cvReleaseBlobs(blobs);
 }
 
-void CvBlobWrapper::findWhiteBlobs(Mat *src, Mat *result)
+cvb::CvTracks *CvBlobWrapper::getCvTracks()
+{
+	return &tracks;
+}
+
+void CvBlobWrapper::findWhiteBlobs(Mat *src, Mat *verbose)
 {
 	IplImage imgSrc = *src;
-	IplImage imgRes = *result;
+	IplImage imgRes = *verbose;
 
     IplImage *labelImg = cvCreateImage(cvGetSize(&imgSrc), IPL_DEPTH_LABEL, 1);
 
@@ -38,7 +43,8 @@ void CvBlobWrapper::findWhiteBlobs(Mat *src, Mat *result)
     cvReleaseImage(&labelImg);
 
 	Mat tempMat(&imgRes,true);
-	tempMat.copyTo(*result);
+	if (verbose)
+		tempMat.copyTo(*verbose);
 
     /*for (CvBlobs::const_iterator it=blobs.begin(); it!=blobs.end(); ++it)
     {
