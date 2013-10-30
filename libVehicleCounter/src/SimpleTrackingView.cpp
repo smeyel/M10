@@ -127,29 +127,35 @@ void SimpleTrackingView::drawLocationRegistration(LocationRegistration *locReg, 
 {
 	// ---------- Visualize current results
 	// Show motion vector prediction cloud for next location
-	context->motionVectorStorage.showMotionVectorPredictionCloud(locReg->centroid,&verbose, 0.5);
+	if (configmanager.showAllMotionVectors)
+	{
+		context->motionVectorStorage.showMotionVectorPredictionCloud(locReg->centroid,&verbose, 0.5);
+	}
 
 	Point upperleft(locReg->boundingBox.x, locReg->boundingBox.y);
 
 	// Show size ratio
-	line(verbose,
-		Point(upperleft.x, upperleft.y-5),
-		Point(upperleft.x + 50, upperleft.y-7),
-		Scalar(255,0,0), 3);
-	Scalar color(0,255,255);	// yellow be default
-	if (locReg->sizeRatioToMean<0.8)
+	if(configmanager.showSizeRatioBars)
 	{
-		color = Scalar(0,255,0);	// Green (definitely small)
-	}
-	else if (locReg->sizeRatioToMean>1.4)
-	{
-		color = Scalar(0,0,255);	// Red (definitely big)
+		line(verbose,
+			Point(upperleft.x, upperleft.y-5),
+			Point(upperleft.x + 50, upperleft.y-7),
+			Scalar(255,0,0), 3);
+		Scalar color(0,255,255);	// yellow be default
+		if (locReg->sizeRatioToMean<0.8)
+		{
+			color = Scalar(0,255,0);	// Green (definitely small)
+		}
+		else if (locReg->sizeRatioToMean>1.4)
+		{
+			color = Scalar(0,0,255);	// Red (definitely big)
+		}
+		line(verbose,
+			Point(upperleft.x, upperleft.y-5),
+			Point(upperleft.x + (int)(locReg->sizeRatioToMean*50.0F), upperleft.y-5),
+			color, 3);
 	}
 
-	line(verbose,
-		Point(upperleft.x, upperleft.y-5),
-		Point(upperleft.x + (int)(locReg->sizeRatioToMean*50.0F), upperleft.y-5),
-		color, 3);
 
 
 	// Show sumArea
@@ -162,11 +168,30 @@ void SimpleTrackingView::drawLocationRegistration(LocationRegistration *locReg, 
 		buffer.str().c_str(), cvPoint(upperLeft.x + 5, upperLeft.y + 5), &font, CV_RGB(255.,255.,255.)); */
 
 	// Show mean bounding box at this location
-	Size meanSize = context->sizeStorage.getMeanSize(locReg->centroid,locReg->lastSpeedVector);
-	Rect meanRect(
-		locReg->centroid.x - meanSize.width/2, locReg->centroid.y - meanSize.height/2, 
-		meanSize.width, meanSize.height);
-	rectangle(verbose,meanRect,Scalar(100,100,100));
+	if (configmanager.showMeanSizeAtLocation)
+	{
+		Size meanSize = context->sizeStorage.getMeanSize(locReg->centroid,locReg->lastSpeedVector);
+		Rect meanRect(
+			locReg->centroid.x - meanSize.width/2, locReg->centroid.y - meanSize.height/2, 
+			meanSize.width, meanSize.height);
+		rectangle(verbose,meanRect,Scalar(100,100,100));
+	}
+
+	Scalar color = Scalar(255,255,255);
+	// Show detection rectangle
+	if (configmanager.showBoundingBox)
+	{
+		rectangle(verbose,locReg->boundingBox,color);
+	}
+	// Show trackID
+	if (configmanager.showTrackId)
+	{
+		stringstream oss;
+		oss << locReg->trackID;
+		putText(verbose,
+			oss.str().c_str(),
+			locReg->centroid, CV_FONT_HERSHEY_SIMPLEX, 0.5, color,1,8,false);
+	}
 }
 
 void SimpleTrackingView::verboseMeanSizeAtLastClickLocation()

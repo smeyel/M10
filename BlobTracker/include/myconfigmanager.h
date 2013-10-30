@@ -25,18 +25,6 @@ class MyConfigManager
 		doSaveImages = reader->getBoolValue("output","doSaveImages");
 		outputVideoName = reader->getStringValue("output","outputVideoName");
 
-		showSRC = reader->getBoolValue("show","showSRC");
-		showFORE = reader->getBoolValue("show","showFORE");
-		showBACK = reader->getBoolValue("show","showBACK");
-		showLocationPredictions = reader->getBoolValue("show","showLocationPredictions");
-		showAllMotionVectors = reader->getBoolValue("show","showAllMotionVectors");
-		showPath = reader->getBoolValue("show","showPath");
-		showVectorsAsPath = reader->getBoolValue("show","showVectorsAsPath");
-
-		minBlobArea = reader->getIntValue("blob","minBlobArea");
-		maxBlobArea = reader->getIntValue("blob","maxBlobArea");
-
-
 		return true;
 	}
 
@@ -60,17 +48,6 @@ public:
 	std::string motionVectorInputFilename;
 	std::string validPathInputFilename;
 	std::string outputVideoName;
-
-	bool showSRC;
-	bool showFORE;
-	bool showBACK;
-	bool showLocationPredictions;
-	bool showAllMotionVectors;
-	bool showPath;
-	bool showVectorsAsPath;
-
-	unsigned int minBlobArea;
-	unsigned int maxBlobArea;
 };
 
 #endif

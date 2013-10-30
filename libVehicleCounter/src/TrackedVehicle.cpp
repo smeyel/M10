@@ -114,6 +114,7 @@ void TrackedVehicle::registerDetection(int frameIdx, cvb::CvTrack *currentDetect
 
 	// Store registration data
 	LocationRegistration registration;
+	registration.trackID = this->trackID;
 	registration.frameIdx = frameIdx;
 	registration.confidence = confidence;
 	registration.centroid = centroid;
@@ -292,6 +293,7 @@ void TrackedVehicle::save(FileStorage *fs)
 	for(unsigned int idx=0; idx<locationRegistrations.size(); idx++)
 	{
 		*fs << "{:"
+			<< "trackID" << locationRegistrations[idx].trackID
 			<< "frameIdx" << locationRegistrations[idx].frameIdx
 			<< "confidence" << locationRegistrations[idx].confidence
 			<< "centroid" << locationRegistrations[idx].centroid
@@ -320,6 +322,7 @@ void TrackedVehicle::load(FileNode *node)
 	for( ; it != it_end; ++it)
 	{
 		LocationRegistration lr;
+		(*it)["trackID"] >> lr.trackID;
 		(*it)["frameIdx"] >> lr.frameIdx;
 		(*it)["confidence"] >> lr.confidence;
 		loadPoint((*it)["centroid"],lr.centroid);

@@ -15,6 +15,7 @@ class TrackingContext;	// Against circular header includes.
 
 struct LocationRegistration
 {
+	int trackID;	// Redundant, but makes visualization easier
 	int frameIdx;
 	float confidence;
 	Point centroid;

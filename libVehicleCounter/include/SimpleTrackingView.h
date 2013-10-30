@@ -19,10 +19,15 @@ class SimpleTrackingView : public TrackingViewBase
 			showSRC = reader->getBoolValue("show","showSRC");
 			showFORE = reader->getBoolValue("show","showFORE");
 			showBACK = reader->getBoolValue("show","showBACK");
-			showLocationPredictions = reader->getBoolValue("show","showLocationPredictions");
 			showAllMotionVectors = reader->getBoolValue("show","showAllMotionVectors");
 			showPath = reader->getBoolValue("show","showPath");
 			showVectorsAsPath = reader->getBoolValue("show","showVectorsAsPath");
+
+			showMotionVectorPredictionCloud = reader->getBoolValue("show","showMotionVectorPredictionCloud");
+			showSizeRatioBars = reader->getBoolValue("show","showSizeRatioBars");
+			showMeanSizeAtLocation = reader->getBoolValue("show","showMeanSizeAtLocation");
+			showBoundingBox = reader->getBoolValue("show","showBoundingBox");
+			showTrackId = reader->getBoolValue("show","showTrackId");
 
 			recordVideo = reader->getBoolValue("output","recordVideo");
 			return true;
@@ -39,10 +44,15 @@ class SimpleTrackingView : public TrackingViewBase
 		bool showSRC;
 		bool showFORE;
 		bool showBACK;
-		bool showLocationPredictions;
 		bool showAllMotionVectors;
 		bool showPath;
 		bool showVectorsAsPath;
+
+		bool showMotionVectorPredictionCloud;
+		bool showSizeRatioBars;
+		bool showMeanSizeAtLocation;
+		bool showBoundingBox;
+		bool showTrackId;
 
 		bool recordVideo;
 	};
