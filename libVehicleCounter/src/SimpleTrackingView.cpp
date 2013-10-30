@@ -211,3 +211,16 @@ void SimpleTrackingView::verboseMeanSizeAtLastClickLocation()
 {
 	context->sizeStorage.verboseMeanSizeAtLocation(SimpleTrackingView::lastMouseClickLocation);
 }
+
+SimpleTrackingView::SimpleTrackingView(const char *configFileName)
+{
+	init(configFileName);
+	result = Mat(480,640,CV_8UC3);
+	imageToRecord = Mat(480,2*640,CV_8UC3);
+}
+
+SimpleTrackingView::~SimpleTrackingView()
+{
+	delete outputVideo;
+	outputVideo = NULL;
+}

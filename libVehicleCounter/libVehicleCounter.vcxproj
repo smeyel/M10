@@ -82,6 +82,7 @@
     <ClInclude Include="include\MeasurementExport.h" />
     <ClInclude Include="include\MotionVector.h" />
     <ClInclude Include="include\MotionVectorStorage.h" />
+    <ClInclude Include="include\Path.h" />
     <ClInclude Include="include\PathValidator.h" />
     <ClInclude Include="include\SimpleTracker.h" />
     <ClInclude Include="include\SimpleTrackingView.h" />
@@ -97,6 +98,8 @@
     <ClCompile Include="src\MeasurementExport.cpp" />
     <ClCompile Include="src\MotionVector.cpp" />
     <ClCompile Include="src\MotionVectorStorage.cpp" />
+    <ClCompile Include="src\Path.cpp" />
+    <ClCompile Include="src\PathValidator.cpp" />
     <ClCompile Include="src\SimpleTracker.cpp" />
     <ClCompile Include="src\SimpleTrackingView.cpp" />
     <ClCompile Include="src\TrackedVehicle.cpp" />

@@ -47,3 +47,17 @@ void SimpleTracker::processFrame(Mat &src, int frameIdx, Mat *verbose)
 		vehicle->registerDetection(frameIdx, it->second, &src, this->foregroundFrame, verbose);
 	}
 }
+
+SimpleTracker::SimpleTracker(const char *configfilename)
+{
+	configmanager.init(configfilename);
+	backgroundFrame = new Mat(480,640,CV_8UC1);
+	foregroundFrame = new Mat(480,640,CV_8UC1);
+	blurredSrc = new Mat(480,640,CV_8UC3);
+	init();
+}
+
+Mat *SimpleTracker::getCurrentForegroundImage()	// for debug
+{
+	return foregroundFrame;
+}

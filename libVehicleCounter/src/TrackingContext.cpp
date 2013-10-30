@@ -19,6 +19,25 @@ TrackedVehicle *TrackingContext::getTrackedVehicleOrNull(unsigned int trackId)
 	return trackedVehicles[trackId];
 }
 
+void TrackingContext::loadTrackedAreas(string filename)
+{
+	Area::loadAreaList(filename.c_str(), &trackedAreas);
+}
+
+void TrackingContext::loadBackgroundAreas(string filename)
+{
+	Area::loadAreaList(filename.c_str(), &backgroundAreas);
+}
+
+void TrackingContext::clearBackgroundAreasInImage(Mat &img)
+{
+	for(unsigned int i=0; i<backgroundAreas.size(); i++)
+	{
+		backgroundAreas[i].draw(&img,Scalar(30,30,30),true);
+	}
+}
+
+
 void TrackingContext::exportAllDetections(float minConfidence)
 {
 	for(map<unsigned int,TrackedVehicle*>::iterator it = trackedVehicles.begin(); it != trackedVehicles.end(); it++)
@@ -148,4 +167,24 @@ void TrackingContext::loadVehicles(const char *filename)
 	}
 
 	fs.release();
+}
+
+void TrackingContext::exportLocationRegistrations(int frameIdx, vector<LocationRegistration*> *targetVector, bool clearVector)
+{
+	if (clearVector)
+	{
+		targetVector->clear();
+	}
+	for(map<unsigned int,TrackedVehicle*>::iterator it = trackedVehicles.begin(); it != trackedVehicles.end(); it++)
+	{
+		(*it).second->exportLocationRegistrations(frameIdx, targetVector);
+	}
+}
+
+void TrackingContext::validatePath(float minConfidence)
+{
+	for(map<unsigned int,TrackedVehicle*>::iterator vehicleIterator=trackedVehicles.begin(); vehicleIterator!=trackedVehicles.end(); vehicleIterator++)
+	{
+		vehicleIterator->second->validatePath(minConfidence,NULL,NULL);
+	}
 }

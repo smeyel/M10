@@ -22,6 +22,11 @@ CvBlobWrapper::~CvBlobWrapper()
 	cvReleaseBlobs(blobs);
 }
 
+cvb::CvTracks *CvBlobWrapper::getCvTracks()
+{
+	return &tracks;
+}
+
 void CvBlobWrapper::findWhiteBlobs(Mat *src, Mat *verbose)
 {
 	IplImage imgSrc = *src;

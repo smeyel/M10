@@ -29,23 +29,11 @@ public:
 
 	/** Tracked areas, background areas */
 	std::vector<Area> trackedAreas;
-	void loadTrackedAreas(string filename)
-	{
-		Area::loadAreaList(filename.c_str(), &trackedAreas);
-	}
+	void loadTrackedAreas(string filename);
 
 	std::vector<Area> backgroundAreas;
-	void loadBackgroundAreas(string filename)
-	{
-		Area::loadAreaList(filename.c_str(), &backgroundAreas);
-	}
-	void clearBackgroundAreasInImage(Mat &img)
-	{
-		for(unsigned int i=0; i<backgroundAreas.size(); i++)
-		{
-			backgroundAreas[i].draw(&img,Scalar(30,30,30),true);
-		}
-	}
+	void loadBackgroundAreas(string filename);
+	void clearBackgroundAreasInImage(Mat &img);
 
 	/** Data export functions */
 	void exportAllDetections(float minConfidence);
@@ -61,25 +49,9 @@ public:
 
 	void exportPathOfAllVehicle(bool showContinuousPath, bool showBoundingBox, bool showMeanBoundingBox);
 
-	void exportLocationRegistrations(int frameIdx, vector<LocationRegistration*> *targetVector, bool clearVector=true)
-	{
-		if (clearVector)
-		{
-			targetVector->clear();
-		}
-		for(map<unsigned int,TrackedVehicle*>::iterator it = trackedVehicles.begin(); it != trackedVehicles.end(); it++)
-		{
-			(*it).second->exportLocationRegistrations(frameIdx, targetVector);
-		}
-	}
+	void exportLocationRegistrations(int frameIdx, vector<LocationRegistration*> *targetVector, bool clearVector=true);
 
-	void validatePath(float minConfidence)
-	{
-		for(map<unsigned int,TrackedVehicle*>::iterator vehicleIterator=trackedVehicles.begin(); vehicleIterator!=trackedVehicles.end(); vehicleIterator++)
-		{
-			vehicleIterator->second->validatePath(minConfidence,NULL,NULL);
-		}
-	}
+	void validatePath(float minConfidence);
 
 	void saveVehicles(const char *filename);
 	void loadVehicles(const char *filename);

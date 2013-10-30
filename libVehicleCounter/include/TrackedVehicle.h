@@ -53,12 +53,7 @@ public:
 
 	TrackedVehicle(int iTrackID, TrackingContext *context);
 
-	TrackedVehicle(FileNode *node, TrackingContext *context)
-	{
-		this->context = context;
-		pathID = TrackedVehicle::pathID_unknown;
-		load(node);
-	}
+	TrackedVehicle(FileNode *node, TrackingContext *context);
 
 	/** Returns currently created LocationRegistration */
 	void registerDetection(int frameIdx, cvb::CvTrack *currentDetectingCvTrack, Mat *srcImg, Mat *foregroundImg, Mat *verboseImage);

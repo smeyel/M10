@@ -285,6 +285,14 @@ TrackedVehicle::TrackedVehicle(int iTrackID, TrackingContext *context)
 	trackID = iTrackID;
 }
 
+TrackedVehicle::TrackedVehicle(FileNode *node, TrackingContext *context)
+{
+	this->context = context;
+	pathID = TrackedVehicle::pathID_unknown;
+	load(node);
+}
+
+
 void TrackedVehicle::recalculateLocationConfidences()
 {
 	for(vector<LocationRegistration>::iterator it=locationRegistrations.begin(); it != (locationRegistrations.end()-1); it++)

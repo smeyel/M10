@@ -53,23 +53,13 @@ class SimpleTracker : public TrackerBase
 	Mat *blurredSrc;
 public:
 
-	SimpleTracker(const char *configfilename)
-	{
-		configmanager.init(configfilename);
-		backgroundFrame = new Mat(480,640,CV_8UC1);
-		foregroundFrame = new Mat(480,640,CV_8UC1);
-		blurredSrc = new Mat(480,640,CV_8UC3);
-		init();
-	}
+	SimpleTracker(const char *configfilename);
 
 	void init();
 
 	virtual void processFrame(Mat &src, int frameIdx, Mat *verbose);
 
-	Mat *getCurrentForegroundImage()	// for debug
-	{
-		return foregroundFrame;
-	}
+	Mat *getCurrentForegroundImage();	// for debug
 };
 
 #endif
