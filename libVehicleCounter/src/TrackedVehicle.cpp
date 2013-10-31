@@ -136,7 +136,7 @@ void TrackedVehicle::registerDetection(int frameIdx, cvb::CvTrack *currentDetect
 
 void TrackedVehicle::validatePath(float minConfidence, vector<int> *rawAreaIdxList, vector<int> *cleanedAreaIdxList)
 {
-	recalculateLocationConfidences();
+	//recalculateLocationConfidences();
 
 	// Vectors only used if no external one is given
 	vector<int> trackedAreaHits;
@@ -190,7 +190,7 @@ void TrackedVehicle::validatePath(float minConfidence, vector<int> *rawAreaIdxLi
 
 void TrackedVehicle::exportAllDetections(float minConfidence)	// areaHits and LocationRegistrations are written to context->measurementExport
 {
-	recalculateLocationConfidences();
+	//recalculateLocationConfidences();
 
 	// ------------ Area hit exports
 	vector<int> trackedAreaHits;

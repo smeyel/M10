@@ -63,6 +63,7 @@ bool Path::isValid(vector<int> &areaHits)
 			currentSeenAtLeastOnce = false;
 			if (*areaHitIterator == currentAreaIdx)
 			{
+				currentSeenAtLeastOnce = true;
 				continue;	// Next area is also next in the Path
 			}
 			else
