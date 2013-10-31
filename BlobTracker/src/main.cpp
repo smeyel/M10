@@ -208,14 +208,24 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 			context.exportAllDetections(0.1F);	// minConfidence==0.1 to avoid self-detection of MotionVectors
 			break;
 		case '8':
-			context.validatePath(0.1F);
+			cout << "- recalculateLocationConfidences" << endl;
+			context.recalculateLocationConfidences();
+			cout << "- TODO: re-calculate sizeRatioToMean" << endl;
+			cout << "- validatePath" << endl;
+			context.validatePath(0.1F);	// needs calculated confidences
+			cout << "- saveVehicles" << endl;
 			context.saveVehicles(configmanager.registrationsFilename.c_str());
+			cout << "- done" << endl;
 			break;
 		case '9':
+			cout << "- loadVehicles" << endl;
 			context.loadVehicles(configmanager.registrationsFilename.c_str());
-			cout << "context.loadVehicles OK, do not forget to " << endl << "- load the MotionVectors (i) or" << endl << "- recollect them (m)!" << endl;
+			// Motion vectors and sizes not loaded anymore! They are not needed as confidences are already set!
+			//	But do not forget that they are not loaded!
+			// VehicleSizes are also only used for sizeRatioToMean which is already calculated.
+			// TODO: recollect motion vectors and sizes. Confidences already loaded.
+			cout << "- done, WARNING: motion vectors and sizes are not reloaded!" << endl;
 			//context.recollectMotionVectors(0.0F);
-			//context.recalculateLocationConfidences();
 			//TODO: RELOAD motion vectors, vehicleMeanSizes
 			break;
 		// --------------- Debug functions -----------------
