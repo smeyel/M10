@@ -11,8 +11,7 @@ class Path
 {
 public:
 	int id;
-	vector<int> areaIdxList;
-
+	vector<int> areaIdList;
 
 	Path(FileNode *node);
 

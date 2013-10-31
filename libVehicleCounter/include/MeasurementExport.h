@@ -16,8 +16,9 @@ public:
 
 	ofstream detectionOutput;
 	ofstream areaHitOutput;
+	ofstream pathCountersOutput;
 
-	MeasurementExport(string measurementOutputFilename, string areaHitOutputFilename, string imageOutputDirectory, bool doSaveImages=true);
+	MeasurementExport(string measurementOutputFilename, string areaHitOutputFilename, string pathCountersOutputFilename, string imageOutputDirectory, bool doSaveImages=true);
 	~MeasurementExport();
 
 	string saveimage(int objectID, const char *filenamePrefix, int frameIdx, cv::Mat &image, cv::Rect &roi, bool overrideDoSaveImagesSetting=false);

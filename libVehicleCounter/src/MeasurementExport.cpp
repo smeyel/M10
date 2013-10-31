@@ -6,10 +6,11 @@
 
 using namespace std;
 
-MeasurementExport::MeasurementExport(string detectionOutputFilename, string areaHitOutputFilename, string imageOutputDirectory, bool doSaveImages)
+MeasurementExport::MeasurementExport(string detectionOutputFilename, string areaHitOutputFilename, string pathCountersOutputFilename, string imageOutputDirectory, bool doSaveImages)
 {
 	detectionOutput.open(detectionOutputFilename);
 	areaHitOutput.open(areaHitOutputFilename);
+	pathCountersOutput.open(pathCountersOutputFilename);
 	imageOutputDir = imageOutputDirectory;
 	this->doSaveImages = doSaveImages;
 }

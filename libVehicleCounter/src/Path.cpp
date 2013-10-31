@@ -16,7 +16,7 @@ void Path::save(FileStorage *fs)
 	oss << id;
 	*fs << "{";	// start mapping with name "area"
 	*fs	<< "id" << id;//oss.str();
-	*fs << "areas" << areaIdxList
+	*fs << "areas" << areaIdList
 		<< "}";	// finish mapping "area"
 
 }
@@ -27,25 +27,25 @@ void Path::load(FileNode *node)
 
 	FileNode areaNode = (*node)["areas"];
 
-	(*node)["areas"] >> areaIdxList;
+	(*node)["areas"] >> areaIdList;
 }
 
 /** Check wether given area hit list conforms this path*/
 bool Path::isValid(vector<int> &areaHits)
 {
-	if (areaIdxList.size() == 0)
+	if (areaIdList.size() == 0)
 	{
 		cout << "WARNING: Path object is not valid, cannot be used for validation. Empty areaIdxList." << endl;
 		return false;	// Path itself is not valid. areaHits cannot be considered valid based on this Path.
 	}
 
 	int currentPathAreaIdx = 0;
-	int currentAreaIdx = areaIdxList[currentPathAreaIdx];
+	int currentAreaId = areaIdList[currentPathAreaIdx];
 	bool currentSeenAtLeastOnce = false;	// Do not allow two jumps immediately after each other!
 
 	for(vector<int>::iterator areaHitIterator=areaHits.begin(); areaHitIterator!=areaHits.end(); areaHitIterator++)
 	{
-		if (*areaHitIterator == currentAreaIdx)
+		if (*areaHitIterator == currentAreaId)
 		{
 			currentSeenAtLeastOnce = true;
 			continue;
@@ -56,13 +56,14 @@ bool Path::isValid(vector<int> &areaHits)
 			return false;
 		}
 		// Jump to next area?
-		if (currentPathAreaIdx < areaIdxList.size()-1)
+		if (currentPathAreaIdx < areaIdList.size()-1)
 		{
 			currentPathAreaIdx++;
-			currentAreaIdx = areaIdxList[currentPathAreaIdx];
+			currentAreaId = areaIdList[currentPathAreaIdx];
 			currentSeenAtLeastOnce = false;
-			if (*areaHitIterator == currentAreaIdx)
+			if (*areaHitIterator == currentAreaId)
 			{
+				currentSeenAtLeastOnce = true;
 				continue;	// Next area is also next in the Path
 			}
 			else
@@ -79,7 +80,7 @@ bool Path::isValid(vector<int> &areaHits)
 	}
 
 	// areaHits finished. Is the Path also finished?
-	if (currentPathAreaIdx == areaIdxList.size()-1)
+	if (currentPathAreaIdx == areaIdList.size()-1)
 	{
 		return true;	// Path and areaHits also finished, areaHits is valid
 	}

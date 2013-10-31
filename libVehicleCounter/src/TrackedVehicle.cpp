@@ -64,6 +64,8 @@ void TrackedVehicle::registerDetection(int frameIdx, cvb::CvTrack *currentDetect
 	// Estimate detection confidence
 	//	Last location: last element of locationRegistrations
 	//	Current location: centroid
+	
+	// WARNING: confidence is calculated offline and not incrementally! (Needs as many motion vectors as possible...)
 	float confidence = DEFAULTCONFIDENCE;	// Default confidence
 	if (locationRegistrations.size() > 0)
 	{
@@ -78,6 +80,8 @@ void TrackedVehicle::registerDetection(int frameIdx, cvb::CvTrack *currentDetect
 	int sumArea = cv::countNonZero(maskThresholded);
 	cout << "Car SumArea=" << sumArea << endl; */
 
+	// ---- Calculate and store motion vector and size
+
 	// Calculate current speed vector
 	Point speed = Point(0,0);
 	if (locationRegistrations.size()>0)
@@ -86,12 +90,14 @@ void TrackedVehicle::registerDetection(int frameIdx, cvb::CvTrack *currentDetect
 		if (it->frameIdx+1 == frameIdx)
 		{
 			speed = Point(centroid.x - it->centroid.x, centroid.y - it->centroid.y);
+			// Store new motion vector
+			context->motionVectorStorage.addMotionVector(it->centroid,centroid);
 		}
 	}
-//	cout << "Current speed: " << speed.x << "," << speed.y << endl;
-	
+
 	// Get size information
 	context->sizeStorage.add(centroid,speed,size);
+	// This is also only an initial value! Should be recalculated before saving!
 	float sizeRatio = context->sizeStorage.getAreaRatioToMean(centroid,speed,size);
 	//cout << "CarID " << this->trackID << ": size ratio to mean: " << sizeRatio << endl;
 
@@ -116,21 +122,21 @@ void TrackedVehicle::registerDetection(int frameIdx, cvb::CvTrack *currentDetect
 	LocationRegistration registration;
 	registration.trackID = this->trackID;
 	registration.frameIdx = frameIdx;
-	registration.confidence = confidence;
+	registration.confidence = confidence;	// Initial estimate, should be re-calculated off-line before saving!
 	registration.centroid = centroid;
 	registration.bigBoundingBox = rect;
 	registration.boundingBox = narrowBoundingBox;
-	registration.sizeRatioToMean = sizeRatio;
+	registration.sizeRatioToMean = sizeRatio;	// Initial estimate, should be re-calculated off-line before saving!
 	registration.srcImageFilename = srcImgRoiFilename;
 	registration.maskImageFilename = foreImgRoiFilename;
 	registration.lastSpeedVector = speed;
-	registration.areaHitIdx = -2;	// Not checked yet...
+	registration.areaHitId = -2;	// Not checked yet...
 	locationRegistrations.push_back(registration);
 }
 
 void TrackedVehicle::validatePath(float minConfidence, vector<int> *rawAreaIdxList, vector<int> *cleanedAreaIdxList)
 {
-	recalculateLocationConfidences();
+	//recalculateLocationConfidences();
 
 	// Vectors only used if no external one is given
 	vector<int> trackedAreaHits;
@@ -184,7 +190,7 @@ void TrackedVehicle::validatePath(float minConfidence, vector<int> *rawAreaIdxLi
 
 void TrackedVehicle::exportAllDetections(float minConfidence)	// areaHits and LocationRegistrations are written to context->measurementExport
 {
-	recalculateLocationConfidences();
+	//recalculateLocationConfidences();
 
 	// ------------ Area hit exports
 	vector<int> trackedAreaHits;
@@ -273,7 +279,8 @@ void TrackedVehicle::checkForAreaIntersections(LocationRegistration &registratio
 /*			cout << (currentDetectingCvTrack->inactive ? "inactive " : "  active ");
 			cout << "CAR " << trackID << " in AREA " << (*manager->trackedAreas)[areaIdx].id << endl;*/
 
-			areaHitList.push_back(areaIdx);
+			areaHitList.push_back(context->trackedAreas[areaIdx].id);
+			registration.areaHitId = context->trackedAreas[areaIdx].id;
 		}
 	}
 }
@@ -333,7 +340,7 @@ void TrackedVehicle::save(FileStorage *fs)
 			<< "srcImageFilename" << locationRegistrations[idx].srcImageFilename
 			<< "maskImageFilename" << locationRegistrations[idx].maskImageFilename
 			<< "lastSpeedVector" << locationRegistrations[idx].lastSpeedVector
-			<< "areaHitIdx" << locationRegistrations[idx].areaHitIdx
+			<< "areaHitId" << locationRegistrations[idx].areaHitId
 			<< "}";
 	}
 	*fs << "]"
@@ -368,7 +375,7 @@ void TrackedVehicle::load(FileNode *node)
 		(*it)["maskImageFilename"] >> lr.maskImageFilename;
 //		(*it)["lastSpeedVector"] >> lr.lastSpeedVector;
 		loadPoint((*it)["lastSpeedVector"],lr.lastSpeedVector);
-		(*it)["areaHitIdx"] >> lr.areaHitIdx;
+		(*it)["areaHitId"] >> lr.areaHitId;
 		locationRegistrations.push_back(lr);
 	}
 }

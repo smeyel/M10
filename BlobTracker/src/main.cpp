@@ -57,6 +57,98 @@ void init_defaults(const char *overrideConfigFileName = NULL)
 	src = new Mat(480,640,CV_8UC3);
 }
 
+void exportMeasurementData(TrackingContext &context)
+{
+	cout << "- recalculateLocationConfidences" << endl;
+	context.recalculateLocationConfidences();
+	cout << "- TODO: re-calculate sizeRatioToMean" << endl;
+	cout << "- exportAllDetections, includes path validation" << endl;
+	// exportAllDetections includes path validation
+	context.exportAllDetections(0.1F);	// minConfidence==0.1 to avoid self-detection of MotionVectors
+	cout << "- saveVehicles" << endl;
+	context.saveVehicles(configmanager.registrationsFilename.c_str());
+
+	cout << "- motionVectorStorage.save" << endl;
+	context.motionVectorStorage.save(configmanager.motionVectorInputFilename);
+	cout << "- savePathCounts" << endl;
+	context.savePathCounts();
+
+	cout << "- done" << endl;
+}
+
+void dumpLocationRegistration(TrackingContext &context, TrackedVehicle *vehicle)
+{
+	cout << "dumpLocationRegistration:" << endl;
+	for(vector<LocationRegistration>::iterator it=vehicle->locationRegistrations.begin();
+		it != vehicle->locationRegistrations.end();
+		it++)
+	{
+		cout << "F:" << it->frameIdx << ", r:" << it->centroid << ", v:" << it->lastSpeedVector << ", conf:" << it->confidence << ", Area:" << it->areaHitId << endl;
+	}
+}
+
+void queryProcessor_Vehicle(TrackingContext &context, int vehicleId)
+{
+	TrackedVehicle *vehicle = context.trackedVehicles[vehicleId];
+	bool isFinished = false;
+	while (!isFinished)
+	{
+		cout << "--- Query processor - Vehicle ---" << endl
+			<< "ID: " << vehicle->trackID << " Path:" << vehicle->pathID << endl
+			<<	"(1) LocationRegistration dump" << endl
+			<<	"(x) Exit query processor" << endl
+			<<	"->";
+		char option;
+		cin >> option;
+		cout << endl;
+		switch(option)
+		{
+		case '1':
+			dumpLocationRegistration(context, vehicle);
+			break;
+		case 'x':
+			isFinished=true;
+			break;
+		default:
+			cout << "Unknown option." << endl;
+			break;
+		}
+	}
+}
+
+void queryProcessor(TrackingContext &context)
+{
+	bool isFinished = false;
+	while (!isFinished)
+	{
+		cout << "--- Query processor ---" << endl
+			<<	"(1) Vehicle queries" << endl
+			<<	"(2) Size queries" << endl
+			<<	"(9) Exit query processor" << endl
+			<<	"->";
+		char option;
+		cin >> option;
+		cout << endl;
+		switch(option)
+		{
+		case '1':
+			int vehicleId;
+			cout << "Vehicle ID: ";
+			cin >> vehicleId;
+			cout << endl;
+			queryProcessor_Vehicle(context,vehicleId);
+			break;
+		case '2':
+			break;
+		case 'x':
+			isFinished=true;
+			break;
+		default:
+			cout << "Unknown option." << endl;
+		}
+	}
+}
+
 void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 {
 	init_defaults(overrideConfigFileName);
@@ -64,18 +156,11 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 	src = new Mat(480,640,CV_8UC3);
 	Mat *verbose = new Mat(480,640,CV_8UC3);
 
-	MeasurementExport *measurementExport = new MeasurementExport(configmanager.detectionOutputFilename,configmanager.areaHitOutputFilename,configmanager.imageOutputDirectory,configmanager.doSaveImages);
+	MeasurementExport *measurementExport = new MeasurementExport(configmanager.detectionOutputFilename,configmanager.areaHitOutputFilename,configmanager.pathCounterOutputFilename,configmanager.imageOutputDirectory,configmanager.doSaveImages);
 
 	TrackingContext context;
 	context.loadTrackedAreas(configmanager.trackedAreaInputFilename.c_str());
 	context.loadBackgroundAreas(configmanager.backgroundAreaInputFilename.c_str());
-/*	Path newPath(5);
-	//newPath.id = 5;
-	newPath.areaIdxList.push_back(10);
-	newPath.areaIdxList.push_back(11);
-	newPath.areaIdxList.push_back(12);
-	context.pathValidator.paths.push_back(newPath);
-	context.pathValidator.savePathList(configmanager.validPathInputFilename.c_str()); */
 	context.pathValidator.loadPathList(configmanager.validPathInputFilename.c_str());
 
 	context.measurementExport = measurementExport;
@@ -90,6 +175,7 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 	view.verbose = verbose;
 
 	unsigned int frameIdx = -1;
+	bool saveMeasurementDataUponVideoEnd = true;	// Disabled if Esc is pressed
 	enum stateEnum
 	{
 		run,
@@ -137,7 +223,7 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 		}
 		else
 		{
-			if (frameIdx % 10 == 0)
+			if (frameIdx % 25 == 0)
 			{
 				cout << "FrameIdx: " << frameIdx << endl;
 			}
@@ -149,6 +235,7 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 		case -1:	// No keypress
 			break;
 		case 27:
+			saveMeasurementDataUponVideoEnd = false;
 			state = finished;
 			break;
 		case 'r':
@@ -174,15 +261,15 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 			context.clear();
 			cout << "TrackedVehicle list, MotionVectorStorage, and VehicleSizeStorage cleared." << endl;
 			break;
-		case 'm':
+/*		case 'm':
 			context.recollectMotionVectors(0.0F);
 			context.recalculateLocationConfidences();
-			break;
-		case '1':
+			break; */
+/*		case '1':
 			// Amig nincs confidence becsles (egyszer 0 minConfidence-szel hivtuk), addig threshold-ra semmit nem fog adni.
 			context.recollectMotionVectors(0.7F);
 			context.recalculateLocationConfidences();
-			break;
+			break; */
 		// --------------- Visualization settings -----------------
 		case '2':	// override doSaveImages
 			measurementExport->doSaveImages = !measurementExport->doSaveImages;
@@ -192,35 +279,48 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 			view.configmanager.showPath = !view.configmanager.showPath;
 			cout << "view.configmanager.showPath=" << view.configmanager.showPath << endl;
 			break;
-		case 'a':	// Average motion vector length
+/*		case 'a':	// Average motion vector length
 			cout << "Mean MotionVector.length() = " << context.motionVectorStorage.getMeanMotionVectorLength() << endl;
-			break;
+			break; */
 		// --------------- Motion Vectors persistance functions -----------------
-		case 'M':
+/*		case 'M':
 			context.motionVectorStorage.save(configmanager.motionVectorInputFilename);
-			break;
+			break; */
 		case 'i':
 			context.motionVectorStorage.load(configmanager.motionVectorInputFilename);
 			context.recalculateLocationConfidences();
 			break;
 		// --------------- Export functions -----------------
 		case 'e':
-			context.exportAllDetections(0.1F);	// minConfidence==0.1 to avoid self-detection of MotionVectors
+			exportMeasurementData(context);
 			break;
-		case '8':
-			context.validatePath(0.1F);
+/*		case '8':
+			cout << "- recalculateLocationConfidences" << endl;
+			context.recalculateLocationConfidences();
+			cout << "- TODO: re-calculate sizeRatioToMean" << endl;
+			cout << "- validatePath" << endl;
+			context.validatePath(0.1F);	// needs calculated confidences
+			cout << "- saveVehicles" << endl;
 			context.saveVehicles(configmanager.registrationsFilename.c_str());
-			break;
+			cout << "- done" << endl;
+			break; */
 		case '9':
+			cout << "- loadVehicles" << endl;
 			context.loadVehicles(configmanager.registrationsFilename.c_str());
-			cout << "context.loadVehicles OK, do not forget to " << endl << "- load the MotionVectors (i) or" << endl << "- recollect them (m)!" << endl;
+			// Motion vectors and sizes not loaded anymore! They are not needed as confidences are already set!
+			//	But do not forget that they are not loaded!
+			// VehicleSizes are also only used for sizeRatioToMean which is already calculated.
+			// TODO: recollect motion vectors and sizes. Confidences already loaded.
+			cout << "- done, WARNING: motion vectors and sizes are not reloaded!" << endl;
 			//context.recollectMotionVectors(0.0F);
-			//context.recalculateLocationConfidences();
 			//TODO: RELOAD motion vectors, vehicleMeanSizes
 			break;
 		// --------------- Debug functions -----------------
-		case 's':	// Show mean size
+/*		case 's':	// Show mean size
 			view.verboseMeanSizeAtLastClickLocation();
+			break; */
+		case 'q':	// Start query based processor
+			queryProcessor(context);
 			break;
 		default:
 			cout
@@ -247,6 +347,12 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 				<< "s	Show mean sizes at lastMouseClickLocation" << endl;
 			break;
 		}
+	}
+
+	if (saveMeasurementDataUponVideoEnd)
+	{
+		cout << "Video finished, exporting data..." << endl;
+		exportMeasurementData(context);
 	}
 }
 
