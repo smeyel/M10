@@ -130,7 +130,7 @@ void TrackedVehicle::registerDetection(int frameIdx, cvb::CvTrack *currentDetect
 	registration.srcImageFilename = srcImgRoiFilename;
 	registration.maskImageFilename = foreImgRoiFilename;
 	registration.lastSpeedVector = speed;
-	registration.areaHitIdx = -2;	// Not checked yet...
+	registration.areaHitId = -2;	// Not checked yet...
 	locationRegistrations.push_back(registration);
 }
 
@@ -279,7 +279,8 @@ void TrackedVehicle::checkForAreaIntersections(LocationRegistration &registratio
 /*			cout << (currentDetectingCvTrack->inactive ? "inactive " : "  active ");
 			cout << "CAR " << trackID << " in AREA " << (*manager->trackedAreas)[areaIdx].id << endl;*/
 
-			areaHitList.push_back(areaIdx);
+			areaHitList.push_back(context->trackedAreas[areaIdx].id);
+			registration.areaHitId = context->trackedAreas[areaIdx].id;
 		}
 	}
 }
@@ -339,7 +340,7 @@ void TrackedVehicle::save(FileStorage *fs)
 			<< "srcImageFilename" << locationRegistrations[idx].srcImageFilename
 			<< "maskImageFilename" << locationRegistrations[idx].maskImageFilename
 			<< "lastSpeedVector" << locationRegistrations[idx].lastSpeedVector
-			<< "areaHitIdx" << locationRegistrations[idx].areaHitIdx
+			<< "areaHitId" << locationRegistrations[idx].areaHitId
 			<< "}";
 	}
 	*fs << "]"
@@ -374,7 +375,7 @@ void TrackedVehicle::load(FileNode *node)
 		(*it)["maskImageFilename"] >> lr.maskImageFilename;
 //		(*it)["lastSpeedVector"] >> lr.lastSpeedVector;
 		loadPoint((*it)["lastSpeedVector"],lr.lastSpeedVector);
-		(*it)["areaHitIdx"] >> lr.areaHitIdx;
+		(*it)["areaHitId"] >> lr.areaHitId;
 		locationRegistrations.push_back(lr);
 	}
 }

@@ -81,6 +81,11 @@ public:
 
 	/** Loads trackedVehicles */
 	void loadVehicles(const char *filename);
+
+	/** Calculates and saves vehicle number of every path.
+		Exports into MeasurementExport::pathCountersOutput
+	*/
+	void savePathCounts();
 };
 
 #endif

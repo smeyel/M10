@@ -188,3 +188,27 @@ void TrackingContext::validatePath(float minConfidence)
 		vehicleIterator->second->validatePath(minConfidence,NULL,NULL);
 	}
 }
+
+void TrackingContext::savePathCounts()
+{
+	map<int,int> counters;	// PathID;Counter
+
+	for(map<unsigned int,TrackedVehicle*>::iterator vehicleIterator=trackedVehicles.begin(); vehicleIterator!=trackedVehicles.end(); vehicleIterator++)
+	{
+		if (counters.count(vehicleIterator->second->pathID) == 0)
+		{
+			counters.insert(std::make_pair(vehicleIterator->second->pathID, 1));
+		}
+		else
+		{
+			counters[vehicleIterator->second->pathID]++;
+		}
+	}
+
+	for(map<int,int>::iterator counterIterator=counters.begin(); counterIterator!=counters.end(); counterIterator++)
+	{
+		cout << "Counter for path " << counterIterator->first << ": " << counterIterator->second << endl;
+		// TODO: make CSV with form src;dst;cnt
+		measurementExport->pathCountersOutput << counterIterator->first << ";" << counterIterator->second << endl;
+	}
+}

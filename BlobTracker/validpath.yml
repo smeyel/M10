@@ -1,29 +1,65 @@
 %YAML:1.0
 pathlist:
    -
-      id: 1
-      areas: [ 0, 4, 1 ]
-   -
-      id: 2
-      areas: [ 0, 1 ]
+      id: 12
+      areas: [ 1, 6, 2 ]
    -
       id: 12
-      areas: [ 0, 4, 5, 2 ]
-   -
-      id: 13
-      areas: [ 0, 2 ]
+      areas: [ 1, 2 ]
    -
       id: 14
-      areas: [ 0, 4, 2 ]
+      areas: [ 1, 6, 5, 4 ]
    -
-      id: 21
-      areas: [ 2, 5, 3 ]
+      id: 14
+      areas: [ 1, 6, 4 ]
+   -
+      id: 14
+      areas: [ 1, 5, 4 ]
+   -
+      id: 14
+      areas: [ 1, 4 ]
+   -
+      id: 14
+      areas: [ 6, 5, 4 ]
    -
       id: 31
-      areas: [ 1, 4, 2 ]
+      areas: [ 3, 5, 6, 1 ]
+   -
+      id: 31
+      areas: [ 3, 5, 1 ]
+   -
+      id: 31
+      areas: [ 3, 6, 1 ]
+   -
+      id: 31
+      areas: [ 3, 1 ]
+   -
+      id: 34
+      areas: [ 3, 5, 4 ]
+   -
+      id: 34
+      areas: [ 3, 4 ]
    -
       id: 41
-      areas: [ 2, 4, 1 ]
+      areas: [ 4, 5, 6, 1 ]
+   -
+      id: 41
+      areas: [ 4, 5, 1 ]
+   -
+      id: 41
+      areas: [ 4, 6, 1 ]
+   -
+      id: 41
+      areas: [ 4, 1 ]
    -
       id: 42
-      areas: [ 2, 5, 4, 1 ]
+      areas: [ 4, 5, 6, 2 ]
+   -
+      id: 42
+      areas: [ 4, 5, 2 ]
+   -
+      id: 42
+      areas: [ 4, 6, 2 ]
+   -
+      id: 42
+      areas: [ 4, 2 ]

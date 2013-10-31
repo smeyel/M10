@@ -25,7 +25,7 @@ struct LocationRegistration
 	string srcImageFilename;
 	string maskImageFilename;
 	Point lastSpeedVector;	// Speed vector from the previous location if there was a detection. Otherwise, 0;0.
-	int areaHitIdx;	// ID of the hit area (now assuming non-overlapping areas), -2 means not checked yet
+	int areaHitId;	// ID of the hit area (now assuming non-overlapping areas), -2 means not checked yet
 };
 
 /** For every timeframe: TrackID, location, visual properties (size etc for clustering), intersecting detection Areas

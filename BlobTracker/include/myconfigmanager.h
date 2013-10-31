@@ -23,6 +23,7 @@ class MyConfigManager
 
 		detectionOutputFilename = reader->getStringValue("output","detectionOutputFilename");
 		areaHitOutputFilename = reader->getStringValue("output","areaHitOutputFilename");
+		pathCounterOutputFilename = reader->getStringValue("output","pathCounterOutputFilename");
 		imageOutputDirectory = reader->getStringValue("output","imageOutputDirectory");
 		doSaveImages = reader->getBoolValue("output","doSaveImages");
 		outputVideoName = reader->getStringValue("output","outputVideoName");
@@ -47,6 +48,7 @@ public:
 
 	std::string detectionOutputFilename;
 	std::string areaHitOutputFilename;
+	std::string pathCounterOutputFilename;
 	std::string imageOutputDirectory;
 	bool doSaveImages;
 	std::string motionVectorInputFilename;

@@ -70,8 +70,83 @@ void exportMeasurementData(TrackingContext &context)
 
 	cout << "- motionVectorStorage.save" << endl;
 	context.motionVectorStorage.save(configmanager.motionVectorInputFilename);
+	cout << "- savePathCounts" << endl;
+	context.savePathCounts();
 
 	cout << "- done" << endl;
+}
+
+void dumpLocationRegistration(TrackingContext &context, TrackedVehicle *vehicle)
+{
+	cout << "dumpLocationRegistration:" << endl;
+	for(vector<LocationRegistration>::iterator it=vehicle->locationRegistrations.begin();
+		it != vehicle->locationRegistrations.end();
+		it++)
+	{
+		cout << "F:" << it->frameIdx << ", r:" << it->centroid << ", v:" << it->lastSpeedVector << ", conf:" << it->confidence << ", Area:" << it->areaHitId << endl;
+	}
+}
+
+void queryProcessor_Vehicle(TrackingContext &context, int vehicleId)
+{
+	TrackedVehicle *vehicle = context.trackedVehicles[vehicleId];
+	bool isFinished = false;
+	while (!isFinished)
+	{
+		cout << "--- Query processor - Vehicle ---" << endl
+			<< "ID: " << vehicle->trackID << " Path:" << vehicle->pathID << endl
+			<<	"(1) LocationRegistration dump" << endl
+			<<	"(x) Exit query processor" << endl
+			<<	"->";
+		char option;
+		cin >> option;
+		cout << endl;
+		switch(option)
+		{
+		case '1':
+			dumpLocationRegistration(context, vehicle);
+			break;
+		case 'x':
+			isFinished=true;
+			break;
+		default:
+			cout << "Unknown option." << endl;
+			break;
+		}
+	}
+}
+
+void queryProcessor(TrackingContext &context)
+{
+	bool isFinished = false;
+	while (!isFinished)
+	{
+		cout << "--- Query processor ---" << endl
+			<<	"(1) Vehicle queries" << endl
+			<<	"(2) Size queries" << endl
+			<<	"(9) Exit query processor" << endl
+			<<	"->";
+		char option;
+		cin >> option;
+		cout << endl;
+		switch(option)
+		{
+		case '1':
+			int vehicleId;
+			cout << "Vehicle ID: ";
+			cin >> vehicleId;
+			cout << endl;
+			queryProcessor_Vehicle(context,vehicleId);
+			break;
+		case '2':
+			break;
+		case 'x':
+			isFinished=true;
+			break;
+		default:
+			cout << "Unknown option." << endl;
+		}
+	}
 }
 
 void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
@@ -81,7 +156,7 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 	src = new Mat(480,640,CV_8UC3);
 	Mat *verbose = new Mat(480,640,CV_8UC3);
 
-	MeasurementExport *measurementExport = new MeasurementExport(configmanager.detectionOutputFilename,configmanager.areaHitOutputFilename,configmanager.imageOutputDirectory,configmanager.doSaveImages);
+	MeasurementExport *measurementExport = new MeasurementExport(configmanager.detectionOutputFilename,configmanager.areaHitOutputFilename,configmanager.pathCounterOutputFilename,configmanager.imageOutputDirectory,configmanager.doSaveImages);
 
 	TrackingContext context;
 	context.loadTrackedAreas(configmanager.trackedAreaInputFilename.c_str());
@@ -244,6 +319,9 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 /*		case 's':	// Show mean size
 			view.verboseMeanSizeAtLastClickLocation();
 			break; */
+		case 'q':	// Start query based processor
+			queryProcessor(context);
+			break;
 		default:
 			cout
 				<< "--- run control functions ---" << endl
