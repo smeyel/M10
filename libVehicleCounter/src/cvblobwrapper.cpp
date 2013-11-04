@@ -17,7 +17,7 @@ CvBlobWrapper::CvBlobWrapper()
 	thInactive = 5;
 	thActive = 2;
 
-	minConfidence100 = 70.0;
+	minConfidence = 0.7;
 
 	minBlobArea = 500;
 	maxBlobArea = 1000000;
@@ -50,10 +50,27 @@ void CvBlobWrapper::findBlobsForTracks(Mat *src, Mat *verbose)
 	{
 		OriginalUpdateTracks(blobs, tracks);
 	}
-	else
+	else if (this->trackingMode == motionvector)
 	{
 		MotionVectorBasedUpdateTracks(blobs, tracks);
 	}
+	else if (this->trackingMode == adaptive)
+	{
+		if (blobs.size()>1)
+		{
+			MotionVectorBasedUpdateTracks(blobs, tracks);
+		}
+		else
+		{
+			OriginalUpdateTracks(blobs, tracks);
+		}
+	}
+	else
+	{
+		cout << "ERROR: unknown trackingMode!" << endl;
+		return;
+	}
+
     cvb::cvRenderTracks(tracks, &imgSrc, &imgRes, CV_TRACK_RENDER_ID|CV_TRACK_RENDER_BOUNDING_BOX);
 
     cvReleaseImage(&labelImg);
@@ -151,15 +168,15 @@ double distantBlobTrack(CvBlob const *b, CvTrack const *t)
 	return MIN(d1, d2);
 }
 
-double CvBlobWrapper::confidence100BlobTrack(CvBlob const *b, CvTrack const *t)
+double CvBlobWrapper::confidenceBlobTrack(CvBlob const *b, CvTrack const *t)
 {
-	double confidence100 = 0.0;
+	double confidence = 0.0;
 
 	Point prev((int)t->centroid.x,(int)t->centroid.y);
 	Point current((int)b->centroid.x,(int)b->centroid.y);
-	confidence100 = 100.0 * context->motionVectorStorage.getConfidence(prev,current);
+	confidence = context->motionVectorStorage.getConfidence(prev,current);
 
-	return confidence100;
+	return confidence;
 }
 
 
@@ -453,8 +470,8 @@ void CvBlobWrapper::MotionVectorBasedUpdateTracks(cvb::CvBlobs const &blobs, cvb
 			{
 				int trackID = T(j)->id;
 				cout << "  Checking TRACK" << trackID << " @(" << T(j)->centroid.x << ";" << T(j)->centroid.y << ")" << endl;
-				double confidence = confidence100BlobTrack(B(i), T(j));
-				if (C(i, j) = (confidence >= minConfidence100))
+				double confidence = confidenceBlobTrack(B(i), T(j));
+				if (C(i, j) = (confidence >= minConfidence))
 				{
 					cout << "    CLOSE, conf=" << confidence << endl;
 					AB(i)++;

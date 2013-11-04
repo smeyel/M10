@@ -266,6 +266,10 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 			context.recollectMotionVectors(0.0F);
 			context.recalculateLocationConfidences();
 			break; */
+		case 'a':
+			tracker.cvblob.trackingMode = CvBlobWrapper::TrackingModeEnum::adaptive;
+			cout << "Tracking mode: ADAPTIVE" << endl;
+			break;
 		case '1':
 			tracker.cvblob.trackingMode =
 				tracker.cvblob.trackingMode == CvBlobWrapper::TrackingModeEnum::cvblob ?

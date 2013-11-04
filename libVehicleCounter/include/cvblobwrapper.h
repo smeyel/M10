@@ -25,8 +25,8 @@ class CvBlobWrapper
 	unsigned int thInactive;
 	unsigned int thActive;
 
-	float minConfidence100;
-	double confidence100BlobTrack(cvb::CvBlob const *b, cvb::CvTrack const *t);
+	float minConfidence;
+	double confidenceBlobTrack(cvb::CvBlob const *b, cvb::CvTrack const *t);
 
 public:
 	TrackingContext *context;
@@ -37,7 +37,8 @@ public:
 	enum TrackingModeEnum
 	{
 		cvblob,
-		motionvector
+		motionvector,
+		adaptive
 	} trackingMode;
 
 	CvBlobWrapper();
