@@ -36,7 +36,7 @@ void SimpleTracker::processFrame(Mat &src, int frameIdx, Mat *verbose)
 //	src.copyTo(*verbose);
 
 	//cv::compare(*foregroundFrame,Scalar(200),*foregroundFrame,CMP_GT);
-	cvblob.findWhiteBlobs(foregroundFrame,verbose);
+	cvblob.findBlobsForTracks(foregroundFrame,verbose);
 
 	cvb::CvTracks *tracks = cvblob.getCvTracks();
 	cvb::CvTracks::const_iterator it;

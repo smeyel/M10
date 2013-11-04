@@ -8,6 +8,12 @@ void MotionVectorStorage::addMotionVector(Point src, Point dst)
 
 float MotionVectorStorage::getConfidence(Point prevLocation, Point currentLocation)
 {
+	if (motionVectors.size() == 0)
+	{
+		cout << "WRN: Empty MotionVectorStorage, confidence is set 0.0F" << endl;
+		return 0.0F;
+	}
+
 	// TODO: use more complex confidence estimation than choosing the maximal value!
 	// Otherwise, all matches with outliers will have maximal confidence.
 	double maxWeight = 0.;
