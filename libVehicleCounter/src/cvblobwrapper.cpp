@@ -17,7 +17,7 @@ CvBlobWrapper::CvBlobWrapper()
 	thInactive = 5;
 	thActive = 2;
 
-	minConfidence100 = 50.0;
+	minConfidence100 = 70.0;
 
 	minBlobArea = 500;
 	maxBlobArea = 1000000;
@@ -417,6 +417,8 @@ void CvBlobWrapper::MotionVectorBasedUpdateTracks(cvb::CvBlobs const &blobs, cvb
 	unsigned int nBlobs = blobs.size();
 	unsigned int nTracks = tracks.size();
 
+	cout << "--- MotionVectorBasedUpdateTracks, nBlobs=" << nBlobs << ", nTracks=" << nTracks << endl;
+
 	// Proximity matrix:
 	// Last row/column is for ID/label.
 	// Last-1 "/" is for accumulation.
@@ -445,12 +447,23 @@ void CvBlobWrapper::MotionVectorBasedUpdateTracks(cvb::CvBlobs const &blobs, cvb
 
 		// Proximity matrix calculation and "used blob" list inicialization:
 		for (i=0; i<nBlobs; i++)
+		{
+			cout << "Checking BLOB " << i << " @(" << B(i)->centroid.x << ";" << B(i)->centroid.y << ")" << endl;
 			for (j=0; j<nTracks; j++)
-				if (C(i, j) = (confidence100BlobTrack(B(i), T(j)) < minConfidence100))
+			{
+				int trackID = T(j)->id;
+				cout << "  Checking TRACK" << trackID << " @(" << T(j)->centroid.x << ";" << T(j)->centroid.y << ")" << endl;
+				double confidence = confidence100BlobTrack(B(i), T(j));
+				if (C(i, j) = (confidence >= minConfidence100))
 				{
+					cout << "    CLOSE, conf=" << confidence << endl;
 					AB(i)++;
 					AT(j)++;
 				}
+			}
+		}
+
+		cout << "Now processing..." << endl;
 
 		/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		// Detect inactive tracks (no close blobs)

@@ -167,6 +167,7 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 
 	SimpleTracker tracker(configfilename);
 	tracker.context = &context;
+	tracker.cvblob.context = &context;	// Do this some other way, not here!
 
 	SimpleTrackingView view(configfilename);
 	view.context = &context;
@@ -199,7 +200,7 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 		}
 
 		src->copyTo(*verbose);
-		if (state != replay)
+		if (state == run)
 		{
 			tracker.processFrame(*src,frameIdx,verbose);
 		}
@@ -265,11 +266,16 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 			context.recollectMotionVectors(0.0F);
 			context.recalculateLocationConfidences();
 			break; */
-/*		case '1':
-			// Amig nincs confidence becsles (egyszer 0 minConfidence-szel hivtuk), addig threshold-ra semmit nem fog adni.
+		case '1':
+			tracker.cvblob.trackingMode =
+				tracker.cvblob.trackingMode == CvBlobWrapper::TrackingModeEnum::cvblob ?
+				CvBlobWrapper::TrackingModeEnum::motionvector :
+				CvBlobWrapper::TrackingModeEnum::cvblob;
+			cout << "Tracking mode: " << (tracker.cvblob.trackingMode == CvBlobWrapper::TrackingModeEnum::cvblob ? "cvblob" : "motionvector") << endl;
+/*			// Amig nincs confidence becsles (egyszer 0 minConfidence-szel hivtuk), addig threshold-ra semmit nem fog adni.
 			context.recollectMotionVectors(0.7F);
-			context.recalculateLocationConfidences();
-			break; */
+			context.recalculateLocationConfidences(); */
+			break; 
 		// --------------- Visualization settings -----------------
 		case '2':	// override doSaveImages
 			measurementExport->doSaveImages = !measurementExport->doSaveImages;

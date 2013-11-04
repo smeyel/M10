@@ -41,7 +41,6 @@ class SimpleTracker : public TrackerBase
 			}
 	};
 
-	CvBlobWrapper cvblob;
 
 	MyConfigManager configmanager;
 
@@ -52,6 +51,7 @@ class SimpleTracker : public TrackerBase
 	Mat *foregroundFrame;
 	Mat *blurredSrc;
 public:
+	CvBlobWrapper cvblob;
 
 	SimpleTracker(const char *configfilename);
 

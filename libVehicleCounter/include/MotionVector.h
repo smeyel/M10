@@ -5,7 +5,7 @@
 
 using namespace cv;
 
-#define WEIGHTMAXDISTANCE	20.
+#define WEIGHTMAXDISTANCE	50.
 
 class MotionVector
 {
