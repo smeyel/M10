@@ -27,6 +27,7 @@ using namespace LogConfigTime;
 char *configfilename = "default.ini";
 MyConfigManager configmanager;
 CameraLocalProxy *camProxy = NULL;
+unsigned int frameIdx;
 Mat *src;
 
 void init_defaults(const char *overrideConfigFileName = NULL)
@@ -88,8 +89,30 @@ void dumpLocationRegistration(TrackingContext &context, TrackedVehicle *vehicle)
 	}
 }
 
+void jumpToFirstLocationRegistration(TrackingContext &context, TrackedVehicle *vehicle)
+{
+	int firstDetectionFrame = -1;
+	for(vector<LocationRegistration>::iterator it=vehicle->locationRegistrations.begin();
+		it != vehicle->locationRegistrations.end();
+		it++)
+	{
+		if (firstDetectionFrame == -1 || firstDetectionFrame > it->frameIdx)
+		{
+			firstDetectionFrame = it->frameIdx;
+		}
+	}
+	cout << "Jump to frame " << firstDetectionFrame << endl;
+	camProxy->JumpToFrame(firstDetectionFrame);
+	frameIdx = firstDetectionFrame;
+}
+
 void queryProcessor_Vehicle(TrackingContext &context, int vehicleId)
 {
+	if (vehicleId >= context.trackedVehicles.size())
+	{
+		cout << "No vehicle with ID=" << vehicleId << endl;
+		return;
+	}
 	TrackedVehicle *vehicle = context.trackedVehicles[vehicleId];
 	bool isFinished = false;
 	while (!isFinished)
@@ -97,7 +120,8 @@ void queryProcessor_Vehicle(TrackingContext &context, int vehicleId)
 		cout << "--- Query processor - Vehicle ---" << endl
 			<< "ID: " << vehicle->trackID << " Path:" << vehicle->pathID << endl
 			<<	"(1) LocationRegistration dump" << endl
-			<<	"(x) Exit query processor" << endl
+			<<	"(2) Jump to first detection frame" << endl
+			<<	"(x) Back" << endl
 			<<	"->";
 		char option;
 		cin >> option;
@@ -106,6 +130,9 @@ void queryProcessor_Vehicle(TrackingContext &context, int vehicleId)
 		{
 		case '1':
 			dumpLocationRegistration(context, vehicle);
+			break;
+		case '2':
+			jumpToFirstLocationRegistration(context, vehicle);
 			break;
 		case 'x':
 			isFinished=true;
@@ -179,7 +206,7 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 	view.src = src;
 	view.verbose = verbose;
 
-	unsigned int frameIdx = -1;
+	frameIdx = -1;
 	bool saveMeasurementDataUponVideoEnd = true;	// Disabled if Esc is pressed
 	enum stateEnum
 	{
