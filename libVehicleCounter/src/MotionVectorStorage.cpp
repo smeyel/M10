@@ -2,8 +2,21 @@
 
 void MotionVectorStorage::addMotionVector(Point src, Point dst)
 {
-	MotionVector *mv = new MotionVector(src,dst);
-	motionVectors.push_back(mv);
+	if (!collectNewMotionVectors)
+	{
+		return;
+	}
+
+	float confidence = getConfidence(src,dst);
+	if (confidence < minConfidenceToSkipAddingNewMotionVector)
+	{
+		MotionVector *mv = new MotionVector(src,dst);
+		motionVectors.push_back(mv);
+	}
+/*	else
+	{
+		cout << "New MotionVector not added due to already high confidence: " << confidence << endl;
+	} */
 }
 
 float MotionVectorStorage::getConfidence(Point prevLocation, Point currentLocation)
@@ -16,13 +29,19 @@ float MotionVectorStorage::getConfidence(Point prevLocation, Point currentLocati
 
 	// TODO: use more complex confidence estimation than choosing the maximal value!
 	// Otherwise, all matches with outliers will have maximal confidence.
-	double maxWeight = 0.;
+	float maxWeight = 0.;
 	for(vector<MotionVector *>::iterator it=motionVectors.begin(); it!=motionVectors.end(); it++)
 	{
+		// Do not take totally equal motion vectors into account
+		if ((*it)->isTheSame(prevLocation,currentLocation))
+		{
+			continue;
+		}
+
 		double weight = (*it)->getDirectionSensitiveWeight(prevLocation,currentLocation);
 		//double weight = (*it)->getWeight(prevLocation,currentLocation);
 
-		if (weight > maxWeight && weight<1.)	// Exact match may be the outlier itself!
+		if (weight > maxWeight)
 		{
 			maxWeight = weight;
 		}
@@ -116,4 +135,38 @@ float MotionVectorStorage::getMeanMotionVectorLength()
 	}
 
 	return sumLen / num;
+}
+
+
+void MotionVectorStorage::consolidate(float outlierMaxConfidence, float overlapMinConfidence)
+{
+	cout << "Number of MotionVectors before consolidation: " << motionVectors.size() << endl;
+	int tmpCounter = 0;
+
+	// Remove outliers and overlaps
+	for(vector<MotionVector *>::iterator it=motionVectors.begin(); it!=motionVectors.end(); it++)
+	{
+		float currentMotionVectorConfidence = (*it)->getConfidence(this);
+		bool toRemove = false;
+		if (currentMotionVectorConfidence <= outlierMaxConfidence)
+		{
+			toRemove = true;
+		}
+		if (currentMotionVectorConfidence >= overlapMinConfidence)
+		{
+			toRemove = true;
+		}
+
+		if (toRemove)
+		{
+			delete *it;
+			motionVectors.erase(it++);
+		}
+		if (++tmpCounter % 1000 == 0)
+		{
+			cout << "Progress: " << tmpCounter << endl;
+		}
+	}
+
+	cout << "Number of MotionVectors after consolidation: " << motionVectors.size() << endl;
 }

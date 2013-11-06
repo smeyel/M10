@@ -69,6 +69,7 @@ void exportMeasurementData(TrackingContext &context)
 	context.saveVehicles(configmanager.registrationsFilename.c_str());
 
 	cout << "- motionVectorStorage.save" << endl;
+	context.motionVectorStorage.consolidate(0.5F,0.9F);
 	context.motionVectorStorage.save(configmanager.motionVectorInputFilename);
 	cout << "- savePathCounts" << endl;
 	context.savePathCounts();
@@ -165,6 +166,9 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 
 	context.measurementExport = measurementExport;
 
+	context.motionVectorStorage.minConfidenceToSkipAddingNewMotionVector = 0.95F;
+	context.motionVectorStorage.collectNewMotionVectors = true;
+
 	SimpleTracker tracker(configfilename);
 	tracker.context = &context;
 	tracker.cvblob.context = &context;	// Do this some other way, not here!
@@ -200,7 +204,7 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 		}
 
 		src->copyTo(*verbose);
-		if (state == run)
+		if (state == run || state == turbo)
 		{
 			tracker.processFrame(*src,frameIdx,verbose);
 		}
@@ -298,12 +302,19 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 			break; */
 		case 'i':
 			context.motionVectorStorage.load(configmanager.motionVectorInputFilename);
+			break;
+		case 'I':
 			context.recalculateLocationConfidences();
 			break;
 		// --------------- Export functions -----------------
 		case 'e':
 			exportMeasurementData(context);
 			break;
+		case 'o':	// cOnsolidate MotionVectorStorage
+			cout << "motionVectorStorage.consolidate(0.5F,0.9F)..." << endl;
+			context.motionVectorStorage.consolidate(0.5F,0.9F);
+			break;
+
 /*		case '8':
 			cout << "- recalculateLocationConfidences" << endl;
 			context.recalculateLocationConfidences();
@@ -321,9 +332,15 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 			//	But do not forget that they are not loaded!
 			// VehicleSizes are also only used for sizeRatioToMean which is already calculated.
 			// TODO: recollect motion vectors and sizes. Confidences already loaded.
-			cout << "- done, WARNING: motion vectors and sizes are not reloaded!" << endl;
-			//context.recollectMotionVectors(0.0F);
-			//TODO: RELOAD motion vectors, vehicleMeanSizes
+
+			cout << "- loading motion vectors" << endl;
+			context.motionVectorStorage.load(configmanager.motionVectorInputFilename);
+			cout << "- turning off motion vector collection" << endl;
+			context.motionVectorStorage.collectNewMotionVectors = false;
+
+			cout << "- Switching to REPLAY mode" << endl;
+			state = replay;
+
 			break;
 		// --------------- Debug functions -----------------
 /*		case 's':	// Show mean size

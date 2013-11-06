@@ -1,5 +1,7 @@
 #include "MotionVector.h"
 
+#include "MotionVectorStorage.h"
+
 #ifndef MAX
 #  define MAX(a,b)  ((a) < (b) ? (b) : (a))
 #endif
@@ -106,4 +108,17 @@ void MotionVector::load(FileNode *node)
 	src = Point(srcNode[0],srcNode[1]);
 	FileNode dstNode = (*node)["dst"];
 	dst = Point(dstNode[0],dstNode[1]);
+}
+
+float MotionVector::getConfidence(MotionVectorStorage *storage)
+{
+	return storage->getConfidence(this->src, this->dst);
+}
+
+bool MotionVector::isTheSame(Point src, Point dst)
+{
+	return (this->src.x == src.x
+		&& this->src.y == src.y
+		&& this->dst.x == dst.x
+		&& this->dst.y == dst.y);
 }

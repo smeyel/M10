@@ -16,21 +16,32 @@ class MotionVectorStorage
 {
 	vector<MotionVector *> motionVectors;
 public:
+	float minConfidenceToSkipAddingNewMotionVector;
+	bool collectNewMotionVectors;
+
+	~MotionVectorStorage();
 	void addMotionVector(Point src, Point dst);
 
 	float getConfidence(Point prevLocation, Point currentLocation);
 
-	~MotionVectorStorage();
+	/** Consolidate internal representation to accelerate confidence queries, remove outliers */
+	void consolidate(float outlierMaxConfidence, float overlapMinConfidence);
+
+	// ------------- Visualization
 
 	void showMotionVectorPredictionCloud(Point sourceLocation, Mat *img, double minimalWeight=0.01);
 	
 	void showAllMotionVectors(Mat *img, Scalar color);
+
+	// ------------- Storage, persistance
 
 	void clear();
 
 	void save(string filename);
 
 	void load(string filename);
+
+	// ------------- Debug, info
 
 	float getMeanMotionVectorLength();
 };
