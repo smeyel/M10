@@ -293,6 +293,11 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 			view.configmanager.showPath = !view.configmanager.showPath;
 			cout << "view.configmanager.showPath=" << view.configmanager.showPath << endl;
 			break;
+		case '4':	// toggle showPath
+			camProxy->JumpToFrame(1000);
+			frameIdx = 1000;
+			cout << "Jumping to frame 1000..." << endl;
+			break;
 /*		case 'a':	// Average motion vector length
 			cout << "Mean MotionVector.length() = " << context.motionVectorStorage.getMeanMotionVectorLength() << endl;
 			break; */
