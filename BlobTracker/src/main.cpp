@@ -306,6 +306,7 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 			break;
 		case 's':
 			controlState = single;
+			break;
 		// --------------- Switch to replay mode
 		case 'l':	// Load
 			cout << "- loadVehicles" << endl;
@@ -363,6 +364,10 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 			view.configmanager.showPath = !view.configmanager.showPath;
 			cout << "view.configmanager.showPath=" << view.configmanager.showPath << endl;
 			break;
+		case '4':	// toggle showPath
+			view.configmanager.showAllMotionVectors = !view.configmanager.showAllMotionVectors;
+			cout << "view.configmanager.showAllMotionVectors=" << view.configmanager.showAllMotionVectors << endl;
+			break;
 /*		case 'a':	// Average motion vector length
 			cout << "Mean MotionVector.length() = " << context.motionVectorStorage.getMeanMotionVectorLength() << endl;
 			break; */
@@ -370,17 +375,17 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 /*		case 'M':
 			context.motionVectorStorage.save(configmanager.motionVectorInputFilename);
 			break; */
-		case 'i':
+/*		case 'i':
 			context.motionVectorStorage.load(configmanager.motionVectorInputFilename);
-			break;
+			break;*/
 		// --------------- Export functions -----------------
 		case 'e':
 			exportMeasurementData(context);
 			break;
-		case 'o':	// cOnsolidate MotionVectorStorage
+/*		case 'o':	// cOnsolidate MotionVectorStorage
 			cout << "motionVectorStorage.consolidate(0.5F,0.9F)..." << endl;
 			context.motionVectorStorage.consolidate(0.5F,0.9F);
-			break;
+			break; */
 
 /*		case '8':
 			cout << "- recalculateLocationConfidences" << endl;
