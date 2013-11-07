@@ -104,6 +104,12 @@ void Area::loadAreaList(const char *filename, vector<Area> *areas)
 	ostringstream oss;
 
 	FileNode areaFileNodes = fs["arealist"];
+
+	if (areaFileNodes.size() == 0)
+	{
+		cout << "WARNING: Empty area list! Filename: " << filename << endl;
+	}
+
 	cout << "Loading arealist (size=" << areaFileNodes.size() << ")" << endl;
 
 	FileNodeIterator it = areaFileNodes.begin();

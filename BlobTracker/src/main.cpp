@@ -239,7 +239,8 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 		}
 
 		src->copyTo(*verbose);
-		if (processingMode == processing || processingMode == turbo)
+		if ((processingMode == processing || processingMode == turbo)
+			&& (controlState == run || controlState == single))
 		{
 			tracker.processFrame(*src,frameIdx,verbose);
 		}
@@ -411,8 +412,17 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 				<< "p	Pause mode (no frame capture, no processing)" << endl
 				<< "t	Turbo processing mode (no visualization)" << endl
 				<< "s	Single step" << endl
-				<< "l	Load previous data for replay mode" << endl
-				<< "Esc	Exit program" << endl
+				<< "l	Load previous data and switch to replay mode" << endl
+				<< "Esc	Exit program, no measurement data is saved" << endl
+				<< "--- Auxiliary functions ---" << endl
+				<< "v	Toggle recordVideo option" << endl
+				<< "c	Clear all internal lists" << endl
+				<< "a	Switch to adaptive tracking mode" << endl
+				<< "1	Switch tracking mode between cvblob and motionvector" << endl
+				<< "2	Toggle doSaveImages option" << endl
+				<< "3	Toggle showPath option" << endl
+				<< "4	Toggle showAllMotionVectors option" << endl
+				<< "e	Export all measurement data" << endl
 				<< "--- Debug functions ---" << endl
 				<< "q	Query mode" << endl;
 			break;

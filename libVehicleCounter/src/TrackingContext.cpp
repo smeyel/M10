@@ -21,12 +21,27 @@ TrackedVehicle *TrackingContext::getTrackedVehicleOrNull(unsigned int trackId)
 
 void TrackingContext::loadTrackedAreas(string filename)
 {
-	Area::loadAreaList(filename.c_str(), &trackedAreas);
+	try
+	{
+		Area::loadAreaList(filename.c_str(), &trackedAreas);
+	}
+	catch (...)
+	{
+		cout << "Cannot load area list: " << filename << endl;
+	}
 }
 
 void TrackingContext::loadBackgroundAreas(string filename)
 {
-	Area::loadAreaList(filename.c_str(), &backgroundAreas);
+	try
+	{
+		Area::loadAreaList(filename.c_str(), &backgroundAreas);
+	}
+	catch (...)
+	{
+		cout << "Cannot load background area list: " << filename << endl;
+	}
+
 }
 
 void TrackingContext::clearBackgroundAreasInImage(Mat &img)

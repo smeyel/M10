@@ -15,23 +15,37 @@ void PathValidator::savePathList(const char *filename)
 
 void PathValidator::loadPathList(const char *filename)
 {
-	paths.clear();
-	FileStorage fs(filename,FileStorage::READ);
-	ostringstream oss;
-
-	FileNode pathFileNodes = fs["pathlist"];
-	cout << "Loading pathlist (size=" << pathFileNodes.size() << ")" << endl;
-
-	FileNodeIterator it = pathFileNodes.begin();
-	FileNodeIterator it_end = pathFileNodes.end();
-
-	for( ; it != it_end; ++it)
+	try
 	{
-		Path currentPath(&(*it));	// create and load
-		paths.push_back(currentPath);
+		paths.clear();
+		FileStorage fs(filename,FileStorage::READ);
+		ostringstream oss;
+
+		FileNode pathFileNodes = fs["pathlist"];
+
+		if (pathFileNodes.size() == 0)
+		{
+			cout << "WARNING: No path list! Filename: " << filename << endl;
+		}
+
+		cout << "Loading pathlist (size=" << pathFileNodes.size() << ")" << endl;
+
+		FileNodeIterator it = pathFileNodes.begin();
+		FileNodeIterator it_end = pathFileNodes.end();
+
+		for( ; it != it_end; ++it)
+		{
+			Path currentPath(&(*it));	// create and load
+			paths.push_back(currentPath);
+		}
+
+		fs.release();
+	}
+	catch (...)
+	{
+		cout << "Cannot load path list: " << filename << endl;
 	}
 
-	fs.release();
 }
 
 int PathValidator::getPathIdIfValid(vector<int> &areaHits)
