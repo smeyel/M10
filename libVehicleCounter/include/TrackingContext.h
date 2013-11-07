@@ -53,12 +53,12 @@ public:
 	void exportAllDetections(float minConfidence);
 
 	/** Rebuild list of motion vectors based on all tracked vehicles */
-	void recollectMotionVectors(float minConfidence=0.);
+	//void recollectMotionVectors(float minConfidence=0.);
 
 	/** Recalculate detection confidences
 		calls all TrackedVehicle::recalculateLocationConfidences
 	*/
-	void recalculateLocationConfidences();
+	//void recalculateLocationConfidences();
 
 	/** Uses sizeStorage to export all detected locations of a vehicle. Draws them into an image. */
 	void showPath(TrackedVehicle &vehicle, Mat &img, bool showContinuousPath, bool showBoundingBox, bool showMeanBoundingBox);

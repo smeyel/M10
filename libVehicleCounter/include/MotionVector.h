@@ -5,7 +5,9 @@
 
 using namespace cv;
 
-#define WEIGHTMAXDISTANCE	20.
+#define WEIGHTMAXDISTANCE	50.
+
+class MotionVectorStorage;
 
 class MotionVector
 {
@@ -44,6 +46,11 @@ public:
 	void save(FileStorage *fs);
 
 	void load(FileNode *node);
+
+	/** Checks its own confidence in the storage and compares to the minimal confidence. */
+	float getConfidence(MotionVectorStorage *storage);
+
+	bool isTheSame(Point src, Point dst);
 };
 
 #endif

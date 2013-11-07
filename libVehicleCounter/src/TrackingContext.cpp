@@ -46,7 +46,7 @@ void TrackingContext::exportAllDetections(float minConfidence)
 	}
 }
 
-void TrackingContext::recollectMotionVectors(float minConfidence)
+/*void TrackingContext::recollectMotionVectors(float minConfidence)
 {
 	this->motionVectorStorage.clear();
 
@@ -54,15 +54,15 @@ void TrackingContext::recollectMotionVectors(float minConfidence)
 	{
 		(*it).second->feedMotionVectorsIntoMotionVectorStorage(minConfidence);
 	}
-}
+} */
 
-void TrackingContext::recalculateLocationConfidences()
+/*void TrackingContext::recalculateLocationConfidences()
 {
 	for(map<unsigned int,TrackedVehicle*>::iterator it = trackedVehicles.begin(); it != trackedVehicles.end(); it++)
 	{
 		(*it).second->recalculateLocationConfidences();
 	}
-}
+} */
 
 void TrackingContext::clear()
 {

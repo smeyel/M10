@@ -127,7 +127,7 @@ void SimpleTrackingView::drawLocationRegistration(LocationRegistration *locReg, 
 {
 	// ---------- Visualize current results
 	// Show motion vector prediction cloud for next location
-	if (configmanager.showAllMotionVectors)
+	if (configmanager.showMotionVectorPredictionCloud)
 	{
 		context->motionVectorStorage.showMotionVectorPredictionCloud(locReg->centroid,&verbose, 0.5);
 	}
