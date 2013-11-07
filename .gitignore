@@ -29,3 +29,8 @@ Release/
 *.avi
 *.jpg
 BlobTracker/data_backup/
+*.yml
+
+
+BlobTracker/*.yml
+BlobTracker/data_backup/*.yml

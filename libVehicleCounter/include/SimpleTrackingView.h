@@ -74,7 +74,7 @@ public:
 
 	static Point lastMouseClickLocation;
 
-	SimpleTracker *tracker;
+	TrackerBase *tracker;
 
 	SimpleTrackingView(const char *configFileName);
 

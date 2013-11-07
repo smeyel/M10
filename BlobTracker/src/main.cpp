@@ -18,7 +18,8 @@
 #include "MeasurementExport.h"
 
 #include "TrackingContext.h"
-#include "SimpleTracker.h"
+//#include "SimpleTracker.h"
+#include "AdvancedTracker.h"
 #include "SimpleTrackingView.h"
 
 using namespace cv;
@@ -151,8 +152,8 @@ void queryProcessor(TrackingContext &context)
 	{
 		cout << "--- Query processor ---" << endl
 			<<	"(1) Vehicle queries" << endl
-			<<	"(2) Size queries" << endl
-			<<	"(9) Exit query processor" << endl
+			<<	"(2) Jump to given frame" << endl
+			<<	"(x) Exit query processor" << endl
 			<<	"->";
 		char option;
 		cin >> option;
@@ -167,6 +168,13 @@ void queryProcessor(TrackingContext &context)
 			queryProcessor_Vehicle(context,vehicleId);
 			break;
 		case '2':
+			int desiredFrameIndex;
+			cout << "Frame index: ";
+			cin >> desiredFrameIndex;
+			cout << endl;
+			camProxy->JumpToFrame(desiredFrameIndex);
+			frameIdx = desiredFrameIndex;
+			isFinished=true;
 			break;
 		case 'x':
 			isFinished=true;
@@ -175,6 +183,7 @@ void queryProcessor(TrackingContext &context)
 			cout << "Unknown option." << endl;
 		}
 	}
+	cout << "Query processor finished." << endl;
 }
 
 void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
@@ -196,7 +205,7 @@ void test_BlobOnForeground(const char *overrideConfigFileName = NULL)
 	context.motionVectorStorage.minConfidenceToSkipAddingNewMotionVector = 0.95F;
 	context.motionVectorStorage.collectNewMotionVectors = true;
 
-	SimpleTracker tracker(configfilename);
+	AdvancedTracker tracker(configfilename);
 	tracker.context = &context;
 	tracker.cvblob.context = &context;	// Do this some other way, not here!
 

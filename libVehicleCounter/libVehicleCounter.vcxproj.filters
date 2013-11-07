@@ -60,6 +60,9 @@
     <ClInclude Include="include\Path.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\AdvancedTracker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\area.cpp">
@@ -96,6 +99,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Path.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\AdvancedTracker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -1,10 +1,10 @@
-#ifndef __SIMPLETRACKER_H
-#define __SIMPLETRACKER_H
+#ifndef __ADVANCEDTRACKER_H
+#define __ADVANCEDTRACKER_H
 #include "SimpleIniConfigReader.h"
 
 #include "TrackerBase.h"
 
-class SimpleTracker : public TrackerBase
+class AdvancedTracker : public TrackerBase
 {
 	class MyConfigManager
 	{
@@ -53,13 +53,13 @@ class SimpleTracker : public TrackerBase
 public:
 	CvBlobWrapper cvblob;
 
-	SimpleTracker(const char *configfilename);
+	AdvancedTracker(const char *configfilename);
 
 	void init();
 
 	virtual void processFrame(Mat &src, int frameIdx, Mat *verbose);
 
-	virtual Mat *getCurrentForegroundImage();	// for debug
+	Mat *getCurrentForegroundImage();	// for debug
 };
 
 #endif

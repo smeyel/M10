@@ -78,6 +78,7 @@
     <None Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\AdvancedTracker.h" />
     <ClInclude Include="include\area.h" />
     <ClInclude Include="include\cvblobwrapper.h" />
     <ClInclude Include="include\MeasurementExport.h" />
@@ -94,6 +95,7 @@
     <ClInclude Include="include\VehicleSizeStorage.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\AdvancedTracker.cpp" />
     <ClCompile Include="src\area.cpp" />
     <ClCompile Include="src\cvblobwrapper.cpp" />
     <ClCompile Include="src\MeasurementExport.cpp" />
