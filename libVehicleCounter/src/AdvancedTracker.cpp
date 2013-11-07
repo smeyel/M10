@@ -30,19 +30,20 @@ void AdvancedTracker::processFrame(Mat &src, int frameIdx, Mat *verbose)
 	// Ask every tracked vehicle to find its blob
 	for(map<unsigned int,TrackedVehicle*>::iterator it = context->trackedVehicles.begin(); it != context->trackedVehicles.end(); it++)
 	{
-		if (!it->second->isActive)
+		if (!it->second->isActive())
 		{
 			continue;
 		}
 
 		TrackedVehicle *currentVehicle = it->second;
-		if (currentVehicle->isActive)
+		if (currentVehicle->isActive())
 		{
 			int choosen = findBlob(*currentVehicle,blobs, frameIdx);
 			if (choosen >= 0)
 			{
 				blobs[choosen].assignedVehicleCounter++;
 				currentVehicle->registerBlob(blobs[choosen], frameIdx, &src, this->foregroundFrame, verbose);
+				currentVehicle->lastAssociatedBlobIdx = choosen;
 				cout << "Tracking: Vehicle " << currentVehicle->trackID << " re-found, blob idx: " << choosen << endl;
 			}
 		}
@@ -55,14 +56,58 @@ void AdvancedTracker::processFrame(Mat &src, int frameIdx, Mat *verbose)
 		{
 			TrackedVehicle *newVehicle = context->createTrackedVehicle(*blobIt);
 			newVehicle->registerBlob(*blobIt, frameIdx, &src, foregroundFrame, verbose);
+			newVehicle->lastAssociatedBlobIdx = blobIt->id;
 			cout << "Tracking: New vehicle from blob " << blobIt->id << endl;
+		}
+	}
+
+	// Killing overlapping vehicles (for every blob, only the (continually) oldest vehicle remains)
+	vector<TrackedVehicle*> overlappingVehicles;
+	for(vector<Blob>::iterator blobIt = blobs.begin(); blobIt!=blobs.end(); blobIt++)
+	{
+		if (blobIt->assignedVehicleCounter>=2)
+		{
+			cout << "Overlapping on blob " << blobIt->id << endl;
+
+			// Find the vehicles choosing this blob
+			overlappingVehicles.clear();
+			int maxActivityFrameNumber = 0;
+			TrackedVehicle *vehicleWithMaxActivityFrameNumber = NULL;
+
+			for(map<unsigned int,TrackedVehicle*>::iterator it = context->trackedVehicles.begin(); it != context->trackedVehicles.end(); it++)
+			{
+				if (!it->second->isActive())
+				{
+					continue;
+				}
+
+				if (it->second->lastAssociatedBlobIdx == blobIt->id)
+				{
+					overlappingVehicles.push_back(it->second);
+					if (it->second->continuousActiveFrameNumber > maxActivityFrameNumber)
+					{
+						maxActivityFrameNumber = it->second->continuousActiveFrameNumber;
+						vehicleWithMaxActivityFrameNumber = it->second;
+					}
+				}
+			}
+
+			// Deactivate other vehicles
+			for(vector<TrackedVehicle*>::iterator it=overlappingVehicles.begin(); it!=overlappingVehicles.end(); it++)
+			{
+				if ((*it) != vehicleWithMaxActivityFrameNumber)
+				{
+					(*it)->deactivate();
+					cout << "Overlapping vehicle " << (*it)->trackID << " deactivated." << endl;
+				}
+			}
 		}
 	}
 
 	// Aging vehicles
 	for(map<unsigned int,TrackedVehicle*>::iterator it = context->trackedVehicles.begin(); it != context->trackedVehicles.end(); it++)
 	{
-		if (!it->second->isActive)
+		if (!it->second->isActive())
 		{
 			continue;
 		}
@@ -81,7 +126,7 @@ void AdvancedTracker::processFrame(Mat &src, int frameIdx, Mat *verbose)
 			if (inactiveFrameNumber > configmanager.maxInactivityBeforeDeactivation )
 			{
 				cout << "Tracking: DEACTIVATED vehicle " << it->second->trackID << endl;
-				it->second->isActive = false;
+				it->second->deactivate();
 			}
 		}
 

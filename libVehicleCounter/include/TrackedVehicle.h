@@ -42,6 +42,8 @@ class TrackedVehicle
 
 	void init();
 
+	bool active;	// If false, tracking algorithms do not take it into account...
+
 public:
 	static const int pathID_unknown = -2;
 	static const int pathID_invalid = -1;
@@ -52,12 +54,17 @@ public:
 	int inactiveFrameNumber;			// Length of inactive timespan
 	int continuousActiveFrameNumber;	// Length of continuous detection
 	int frameIdxOfLastRegistration;	// Updated by registerBlob()
-	bool isActive;	// If false, tracking algorithms do not take it into account...
+	int lastAssociatedBlobIdx;	// Used by AdvancedTracker
 
 	int trackID;	// May not reference CvTrack, that is removed after getting useless!
 	int pathID;		// -1: invalid, -2: unknown
 	vector<LocationRegistration> locationRegistrations;
 
+	void deactivate();
+	bool isActive()
+	{
+		return this->active;
+	}
 
 
 	static Size fullImageSize;

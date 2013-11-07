@@ -225,7 +225,7 @@ void TrackedVehicle::checkForAreaIntersections(LocationRegistration &registratio
 
 void TrackedVehicle::init()
 {
-	isActive = true;
+	active = true;
 	pathID = TrackedVehicle::pathID_unknown;
 	locationRegistrations.clear();
 
@@ -438,4 +438,10 @@ void TrackedVehicle::registerBlob(Blob &blob, int frameIdx, Mat *srcImg, Mat *fo
 	locationRegistrations.push_back(registration);
 
 	frameIdxOfLastRegistration = frameIdx;
+}
+
+void TrackedVehicle::deactivate()
+{
+	active = false;
+	// TODO: can perform validation here and disable export if surely not valid (too short lifespan etc.)
 }
