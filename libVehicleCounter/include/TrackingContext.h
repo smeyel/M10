@@ -20,8 +20,16 @@ public:
 
 	/** Vehicles */
 	map<unsigned int,TrackedVehicle*> trackedVehicles;
+	int nextUnusedTrackedVehicleId;
 	TrackedVehicle *getTrackedVehicleOrCreate(unsigned int trackId);
 	TrackedVehicle *getTrackedVehicleOrNull(unsigned int trackId);
+	TrackedVehicle *createTrackedVehicle(Blob blob);
+
+	TrackingContext()
+	{
+		clear();
+	}
+
 	void clear();
 
 	/** Measurement export target */

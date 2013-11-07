@@ -2,6 +2,7 @@
 
 #include "TrackedVehicle.h"
 #include "TrackingContext.h"
+#include "Blob.h"
 
 #define DEFAULTCONFIDENCE 0.1F
 
@@ -61,77 +62,14 @@ void TrackedVehicle::registerDetection(int frameIdx, cvb::CvTrack *currentDetect
 	Size size(currentDetectingCvTrack->maxx - currentDetectingCvTrack->minx, currentDetectingCvTrack->maxy - currentDetectingCvTrack->miny);
 	Rect rect(upperLeft,size);
 
-	// Estimate detection confidence
-	//	Last location: last element of locationRegistrations
-	//	Current location: centroid
-	
-	// WARNING: confidence is calculated offline and not incrementally! (Needs as many motion vectors as possible...)
-	float confidence = DEFAULTCONFIDENCE;	// Default confidence
-	if (locationRegistrations.size() > 0)
-	{
-		Point prevLocation = (locationRegistrations.end()-1)->centroid;
-		confidence = this->context->motionVectorStorage.getConfidence(prevLocation,centroid);
-		//cout << "Confidence of new location: " << confidence << endl;
-	}
+	Blob blob;
+	blob.centroid = centroid;
+	blob.rect = rect;
+	blob.assignedVehicleCounter = 0;
+	blob.id = -1;	// Not a tracking result
+	blob.area = rect.width * rect.height;
 
-	// Calculate real area
-	/*cv::Mat mask = (*manager->currentForegroundMask)(rect);
-	Mat maskThresholded = mask > 200;
-	int sumArea = cv::countNonZero(maskThresholded);
-	cout << "Car SumArea=" << sumArea << endl; */
-
-	// ---- Calculate and store motion vector and size
-
-	// Calculate current speed vector
-	Point speed = Point(0,0);
-	if (locationRegistrations.size()>0)
-	{
-		vector<LocationRegistration>::iterator it = locationRegistrations.end() - 1;
-		if (it->frameIdx+1 == frameIdx)
-		{
-			speed = Point(centroid.x - it->centroid.x, centroid.y - it->centroid.y);
-			// Store new motion vector
-			context->motionVectorStorage.addMotionVector(it->centroid,centroid);
-		}
-	}
-
-	// Get size information
-	context->sizeStorage.add(centroid,speed,size);
-	// This is also only an initial value! Should be recalculated before saving!
-	float sizeRatio = context->sizeStorage.getAreaRatioToMean(centroid,speed,size);
-	//cout << "CarID " << this->trackID << ": size ratio to mean: " << sizeRatio << endl;
-
-	// ---------- Store/export current results
-	// Save images
-	string srcImgRoiFilename;
-	string foreImgRoiFilename;
-	if (srcImg)
-	{
-		srcImgRoiFilename = context->measurementExport->saveimage(this->trackID,"S",frameIdx,*srcImg,rect);
-	}
-	if (foregroundImg)
-	{
-		foreImgRoiFilename = context->measurementExport->saveimage(this->trackID,"M",frameIdx,*foregroundImg,rect);
-	}
-
-	// Get narrow bounding box (size)
-	Rect narrowBoundingBox = getNarrowBoundingBox(*foregroundImg,rect);
-	rectangle(*verboseImage,narrowBoundingBox,Scalar(255,255,255));
-
-	// Store registration data
-	LocationRegistration registration;
-	registration.trackID = this->trackID;
-	registration.frameIdx = frameIdx;
-	registration.confidence = confidence;	// Initial estimate, should be re-calculated off-line before saving!
-	registration.centroid = centroid;
-	registration.bigBoundingBox = rect;
-	registration.boundingBox = narrowBoundingBox;
-	registration.sizeRatioToMean = sizeRatio;	// Initial estimate, should be re-calculated off-line before saving!
-	registration.srcImageFilename = srcImgRoiFilename;
-	registration.maskImageFilename = foreImgRoiFilename;
-	registration.lastSpeedVector = speed;
-	registration.areaHitId = -2;	// Not checked yet...
-	locationRegistrations.push_back(registration);
+	registerBlob(blob, frameIdx, srcImg, foregroundImg, verboseImage);
 }
 
 void TrackedVehicle::validatePath(float minConfidence, vector<int> *rawAreaIdxList, vector<int> *cleanedAreaIdxList)
@@ -285,17 +223,28 @@ void TrackedVehicle::checkForAreaIntersections(LocationRegistration &registratio
 	}
 }
 
+void TrackedVehicle::init()
+{
+	isActive = true;
+	pathID = TrackedVehicle::pathID_unknown;
+	locationRegistrations.clear();
+
+	inactiveFrameNumber = 0;
+	continuousActiveFrameNumber = 0;
+	frameIdxOfLastRegistration = -1;
+}
+
 TrackedVehicle::TrackedVehicle(int iTrackID, TrackingContext *context)
 {
+	init();
 	this->context = context;
-	pathID = TrackedVehicle::pathID_unknown;
 	trackID = iTrackID;
 }
 
 TrackedVehicle::TrackedVehicle(FileNode *node, TrackingContext *context)
 {
+	init();
 	this->context = context;
-	pathID = TrackedVehicle::pathID_unknown;
 	load(node);
 }
 
@@ -400,3 +349,93 @@ void TrackedVehicle::loadRect(cv::FileNode& node, cv::Rect &rect)
 	node[1] >> point.y;
 	return node;
 }*/
+
+TrackedVehicle::TrackedVehicle(int iTrackID, Blob &blob, TrackingContext *context)
+{
+	init();
+	this->context = context;
+	trackID = iTrackID;
+}
+
+void TrackedVehicle::registerBlob(Blob &blob, int frameIdx, Mat *srcImg, Mat *foregroundImg, Mat *verboseImage)
+{
+	// ---------- Calculate current results
+	Point centroid = blob.centroid;
+	Point upperLeft = Point(blob.rect.x, blob.rect.y);
+	Size size(blob.rect.width, blob.rect.height);
+	Rect rect = blob.rect;
+
+	// Estimate detection confidence
+	//	Last location: last element of locationRegistrations
+	//	Current location: centroid
+	
+	// WARNING: confidence is calculated offline and not incrementally! (Needs as many motion vectors as possible...)
+	float confidence = DEFAULTCONFIDENCE;	// Default confidence
+	if (locationRegistrations.size() > 0)
+	{
+		Point prevLocation = (locationRegistrations.end()-1)->centroid;
+		confidence = this->context->motionVectorStorage.getConfidence(prevLocation,centroid);
+		//cout << "Confidence of new location: " << confidence << endl;
+	}
+
+	// Calculate real area
+	/*cv::Mat mask = (*manager->currentForegroundMask)(rect);
+	Mat maskThresholded = mask > 200;
+	int sumArea = cv::countNonZero(maskThresholded);
+	cout << "Car SumArea=" << sumArea << endl; */
+
+	// ---- Calculate and store motion vector and size
+
+	// Calculate current speed vector
+	Point speed = Point(0,0);
+	if (locationRegistrations.size()>0)
+	{
+		vector<LocationRegistration>::iterator it = locationRegistrations.end() - 1;
+		if (it->frameIdx+1 == frameIdx)
+		{
+			speed = Point(centroid.x - it->centroid.x, centroid.y - it->centroid.y);
+			// Store new motion vector
+			context->motionVectorStorage.addMotionVector(it->centroid,centroid);
+		}
+	}
+
+	// Get size information
+	context->sizeStorage.add(centroid,speed,size);
+	// This is also only an initial value! Should be recalculated before saving!
+	float sizeRatio = context->sizeStorage.getAreaRatioToMean(centroid,speed,size);
+	//cout << "CarID " << this->trackID << ": size ratio to mean: " << sizeRatio << endl;
+
+	// ---------- Store/export current results
+	// Save images
+	string srcImgRoiFilename;
+	string foreImgRoiFilename;
+	if (srcImg)
+	{
+		srcImgRoiFilename = context->measurementExport->saveimage(this->trackID,"S",frameIdx,*srcImg,rect);
+	}
+	if (foregroundImg)
+	{
+		foreImgRoiFilename = context->measurementExport->saveimage(this->trackID,"M",frameIdx,*foregroundImg,rect);
+	}
+
+	// Get narrow bounding box (size)
+	Rect narrowBoundingBox = getNarrowBoundingBox(*foregroundImg,rect);
+	rectangle(*verboseImage,narrowBoundingBox,Scalar(255,255,255));
+
+	// Store registration data
+	LocationRegistration registration;
+	registration.trackID = this->trackID;
+	registration.frameIdx = frameIdx;
+	registration.confidence = confidence;	// Initial estimate, should be re-calculated off-line before saving!
+	registration.centroid = centroid;
+	registration.bigBoundingBox = rect;
+	registration.boundingBox = narrowBoundingBox;
+	registration.sizeRatioToMean = sizeRatio;	// Initial estimate, should be re-calculated off-line before saving!
+	registration.srcImageFilename = srcImgRoiFilename;
+	registration.maskImageFilename = foreImgRoiFilename;
+	registration.lastSpeedVector = speed;
+	registration.areaHitId = -2;	// Not checked yet...
+	locationRegistrations.push_back(registration);
+
+	frameIdxOfLastRegistration = frameIdx;
+}

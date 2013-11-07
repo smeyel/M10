@@ -5,6 +5,7 @@
 #include <cvblob.h>
 
 #include "cvblobwrapper.h"
+#include "Blob.h"
 
 class TrackingContext;
 
@@ -29,6 +30,8 @@ class CvBlobWrapper
 	double confidenceBlobTrack(cvb::CvBlob const *b, cvb::CvTrack const *t);
 
 public:
+
+
 	TrackingContext *context;
 
 	unsigned int minBlobArea;
@@ -43,6 +46,7 @@ public:
 
 	CvBlobWrapper();
 	~CvBlobWrapper();
+	void findBlobs(cv::Mat *src, cv::Mat *verbose, std::vector<Blob> &targetBlobList);
 	void findBlobsForTracks(cv::Mat *src, cv::Mat *result);
 	
 	cvb::CvTracks *getCvTracks();

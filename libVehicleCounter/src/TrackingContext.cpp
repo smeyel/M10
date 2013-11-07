@@ -2,6 +2,11 @@
 
 TrackedVehicle *TrackingContext::getTrackedVehicleOrCreate(unsigned int trackId)
 {
+	if (nextUnusedTrackedVehicleId <= trackId)
+	{
+		nextUnusedTrackedVehicleId = trackId + 1;
+	}
+
 	if (trackedVehicles.count(trackId) == 0)
 	{
 		TrackedVehicle *trackedVehicle = new TrackedVehicle(trackId, this);
@@ -12,12 +17,26 @@ TrackedVehicle *TrackingContext::getTrackedVehicleOrCreate(unsigned int trackId)
 
 TrackedVehicle *TrackingContext::getTrackedVehicleOrNull(unsigned int trackId)
 {
+	if (nextUnusedTrackedVehicleId <= trackId)
+	{
+		nextUnusedTrackedVehicleId = trackId + 1;
+	}
+
 	if (trackedVehicles.count(trackId) == 0)
 	{
 		return NULL;
 	}
 	return trackedVehicles[trackId];
 }
+
+TrackedVehicle *TrackingContext::createTrackedVehicle(Blob blob)
+{
+	TrackedVehicle *trackedVehicle = new TrackedVehicle(nextUnusedTrackedVehicleId, blob, this);
+	trackedVehicles.insert(std::make_pair(nextUnusedTrackedVehicleId, trackedVehicle));
+	nextUnusedTrackedVehicleId++;
+	return trackedVehicle;
+}
+
 
 void TrackingContext::loadTrackedAreas(string filename)
 {
@@ -86,6 +105,7 @@ void TrackingContext::clear()
 		delete vehicleIterator->second;
 	}
 	trackedVehicles.clear();
+	nextUnusedTrackedVehicleId = 0;
 }
 
 void TrackingContext::exportPathOfAllVehicle(bool showContinuousPath, bool showBoundingBox, bool showMeanBoundingBox)

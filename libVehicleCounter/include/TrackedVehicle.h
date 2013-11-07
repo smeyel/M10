@@ -8,6 +8,7 @@
 #include "area.h"
 #include "MeasurementExport.h"
 #include "MotionVectorStorage.h"
+#include "Blob.h"
 
 using namespace std;
 
@@ -39,23 +40,35 @@ class TrackedVehicle
 
 	Rect getNarrowBoundingBox(Mat &foreground, Rect originalRect);
 
+	void init();
+
 public:
 	static const int pathID_unknown = -2;
 	static const int pathID_invalid = -1;
 
 	TrackingContext *context;
 
+	// Tracking statistics
+	int inactiveFrameNumber;			// Length of inactive timespan
+	int continuousActiveFrameNumber;	// Length of continuous detection
+	int frameIdxOfLastRegistration;	// Updated by registerBlob()
+	bool isActive;	// If false, tracking algorithms do not take it into account...
+
 	int trackID;	// May not reference CvTrack, that is removed after getting useless!
 	int pathID;		// -1: invalid, -2: unknown
 	vector<LocationRegistration> locationRegistrations;
 
+
+
 	static Size fullImageSize;
+
+	TrackedVehicle(int iTrackID, Blob &blob, TrackingContext *context);
 
 	TrackedVehicle(int iTrackID, TrackingContext *context);
 
 	TrackedVehicle(FileNode *node, TrackingContext *context);
 
-	/** Returns currently created LocationRegistration */
+	// Registers a cvblob tracking detection. Used by SimpleTracker only...
 	void registerDetection(int frameIdx, cvb::CvTrack *currentDetectingCvTrack, Mat *srcImg, Mat *foregroundImg, Mat *verboseImage);
 
 	// Called by MotionVectorStorage
@@ -76,6 +89,8 @@ public:
 	void load(FileNode *node);
 
 	void validatePath(float minConfidence, vector<int> *rawAreaIdxList=NULL, vector<int> *cleanedAreaIdxList=NULL);
+
+	void registerBlob(Blob &blob, int frameIdx, Mat *srcImg, Mat *foregroundImg, Mat *verboseImage);
 
 private:
 	void loadPoint(cv::FileNode& node, cv::Point &point);

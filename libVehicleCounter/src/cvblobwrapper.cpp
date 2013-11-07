@@ -35,6 +35,29 @@ cvb::CvTracks *CvBlobWrapper::getCvTracks()
 	return &tracks;
 }
 
+void CvBlobWrapper::findBlobs(Mat *src, Mat *verbose, vector<Blob> &targetBlobList)
+{
+	IplImage imgSrc = *src;
+	IplImage imgRes = *verbose;
+
+	IplImage *labelImg = cvCreateImage(cvGetSize(&imgSrc), IPL_DEPTH_LABEL, 1);
+
+	unsigned int labelNum = cvLabel(&imgSrc, labelImg, blobs);
+	cvb::cvFilterByArea(blobs, minBlobArea, maxBlobArea);
+	cvb::cvRenderBlobs(labelImg, blobs, &imgSrc, &imgRes, CV_BLOB_RENDER_BOUNDING_BOX);
+
+	for(cvb::CvBlobs::iterator it=blobs.begin(); it!=blobs.end(); it++)
+	{
+		CvBlob *b = it->second;
+		Blob newBlob;
+		newBlob.centroid = Point((int)b->centroid.x,(int)b->centroid.y);
+		newBlob.area = b->area;
+		newBlob.id = b->label;
+		newBlob.rect = Rect(b->minx, b->miny, b->maxx - b->minx, b->maxy - b->miny);
+		targetBlobList.push_back(newBlob);
+	}
+}
+
 void CvBlobWrapper::findBlobsForTracks(Mat *src, Mat *verbose)
 {
 	IplImage imgSrc = *src;

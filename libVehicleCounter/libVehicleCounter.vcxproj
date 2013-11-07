@@ -80,6 +80,7 @@
   <ItemGroup>
     <ClInclude Include="include\AdvancedTracker.h" />
     <ClInclude Include="include\area.h" />
+    <ClInclude Include="include\Blob.h" />
     <ClInclude Include="include\cvblobwrapper.h" />
     <ClInclude Include="include\MeasurementExport.h" />
     <ClInclude Include="include\MotionVector.h" />

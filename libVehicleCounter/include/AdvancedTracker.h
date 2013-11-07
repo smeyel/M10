@@ -16,6 +16,11 @@ class AdvancedTracker : public TrackerBase
 			minBlobArea = reader->getIntValue("blob","minBlobArea");
 			maxBlobArea = reader->getIntValue("blob","maxBlobArea");
 
+			maxNearDistance = (float)reader->getIntValue("tracking","maxNearDistance");
+			maxAssociationDistance = (float)reader->getIntValue("tracking","maxAssociationDistance");
+
+			maxInactivityBeforeDeactivation  = reader->getIntValue("tracking","maxInactivityBeforeDeactivation ");
+
 			return true;
 		}
 
@@ -28,6 +33,12 @@ class AdvancedTracker : public TrackerBase
 		// --- Settings
 		unsigned int minBlobArea;
 		unsigned int maxBlobArea;
+
+		float maxNearDistance;	// Choosing the largets blob among the ones inside this range.
+		float maxAssociationDistance;	// Maximal jump length between two detections
+
+		int maxInactivityBeforeDeactivation ;
+
 	};
 
 
@@ -50,6 +61,11 @@ class AdvancedTracker : public TrackerBase
 	Mat *backgroundFrame;
 	Mat *foregroundFrame;
 	Mat *blurredSrc;
+
+	Point estimateNextLocation(TrackedVehicle &vehicle);
+	float distance(Point a, Point b);
+	int findBlob(TrackedVehicle &vehicle, vector<Blob> &blobs, int frameIdx);
+
 public:
 	CvBlobWrapper cvblob;
 

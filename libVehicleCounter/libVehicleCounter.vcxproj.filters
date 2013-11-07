@@ -63,6 +63,9 @@
     <ClInclude Include="include\AdvancedTracker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\Blob.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\area.cpp">
